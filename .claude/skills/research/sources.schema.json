@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fuentes de la skill research",
+  "description": "Esquema de research-sources.yaml y research-sources.local.yaml. Solo `name` es obligatorio porque el fichero .local lleva fuentes parciales; la skill comprueba que cada fuente esté completa tras fusionar ambos ficheros.",
+  "type": "object",
+  "required": ["sources"],
+  "additionalProperties": false,
+  "properties": {
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "description": "Identificador único en minúsculas con guiones; clave de la fusión entre ficheros."
+          },
+          "type": {
+            "enum": ["directory", "document", "web"],
+            "description": "Tipo de fuente. El formato de un documento (PDF, EPUB) se deduce de la extensión."
+          },
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Ruta o URL. Las rutas de la máquina van en el fichero .local."
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Qué conocimiento contiene; sirve para decidir a qué fuente preguntar."
+          },
+          "restrictions": {
+            "type": "string",
+            "description": "Cómo se puede usar, p. ej. 'solo ideas abstractas, no copiar código'."
+          }
+        }
+      }
+    }
+  }
+}

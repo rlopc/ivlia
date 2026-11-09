@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=./skills/research/sources.schema.json
+# Fuentes que puede consultar la skill research. Las rutas de esta máquina van en
+# research-sources.local.yaml (fuera de git), que se fusiona con este por `name`.
+sources:
+  - name: kb-anterior
+    type: directory
+    content: >-
+      Base de conocimiento anterior (bóveda de Obsidian versionada con git). Contiene
+      un pipeline en Python, sin LLM, que convierte un libro de gramática inglesa en
+      PDF a Markdown fiel (teoría, ejercicios, clave de respuestas y un resumen de la
+      teoría), y scripts de QA que verifican la conversión contra el PDF.
+    restrictions: >-
+      Solo ideas y enfoques, descritos con tus palabras; no copiar código. No
+      reproducir el contenido del libro, que tiene derechos de autor.
+  - name: anthropic-multiagente
+    type: web
+    location: https://www.anthropic.com/engineering/multi-agent-research-system
+    content: >-
+      Artículo de Anthropic (13 de junio de 2025) sobre cómo construyeron su sistema
+      multiagente de investigación: patrón orquestador-trabajador, delegación en
+      subagentes, escalado del esfuerzo, evaluación y coste en tokens.
