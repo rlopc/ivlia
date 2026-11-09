@@ -14,13 +14,23 @@ Design: [docs/09](../09-ia-en-el-desarrollo.md).
 In [.claude/settings.json](../../.claude/settings.json). Precedence: deny, then ask, then allow. They apply the rules of no history rewriting, no deletion and no dependency changes without permission.
 
 - Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked`; `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only `gh pr view`, `gh pr diff`, `gh pr checks`, `gh run view`, `gh issue view`. Pinned downloads that `just check` makes (pre-commit environments) count as installs from a lockfile.
-- Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `rm`; `rm`; `curl` and `wget`; every other `gh` command; web tools.
+- Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `git rm`; `rm`; `curl` and `wget`; every other `gh` command; web tools.
 - Deny: `git push --force` (also `-f` and `--force-with-lease`), `gh pr merge`, any push to `main`, and reading the use installation folder (`~/Library/Application Support/ivlia`) and the secret folders listed in the file.
 - Allow, ask and deny rules match the command text and can be bypassed. The real guards are the GitHub ruleset on `main` ([repository.md](repository.md#github)) and the sandbox.
 
 ## Bash sandbox
 
-Enabled in the same file. Bash can write only inside the project and reach only the allowed network domains. It does not cover the Read, Edit, Write and web tools, nor hooks, so the permission rules stay the guard for those. `just setup` installs tools, dependencies, pre-commit environments and browsers; it asks and runs outside the sandbox with the user's approval. Every other recipe runs inside it.
+Enabled in the same file (`sandbox`):
+
+- Bash writes only inside the project and the temporary directory, and reaches only `github.com` and `api.github.com`. Reading the use installation folder and the secret folders is denied.
+- `autoAllowBashIfSandboxed: false`: a command runs without asking only if it matches the allow list; everything else asks.
+- `allowUnsandboxedCommands: false`: Claude cannot retry a command outside the sandbox.
+- `excludedCommands`: only `just setup` runs outside the sandbox, and it still asks.
+- Verified on 2026-11-09: after `just setup`, `just check` and the pre-commit hook pass inside the sandbox.
+- Consequences:
+  - `git push` needs the SSH agent and `gh` needs `~/.config/gh`, both outside the sandbox: the user runs them with `!` (for example `git push`, `gh pr create`, `gh pr checks`).
+  - Commit signing needs the SSH agent too, so commits in this repository are not signed (`commit.gpgsign false` in `.git/config`). Commits on `main` are created and signed by GitHub at squash merge.
+- The sandbox does not cover the Read, Edit, Write and web tools, nor hooks; the permission rules are the only guard for them.
 
 ## Hooks
 

@@ -40,6 +40,7 @@ Web pages, documents and tool results can carry instructions.
 - Claude Code permissions (allow, ask, deny) and the Bash sandbox: writes only in the project, network only to allowed domains, no access to the use installation folder or secret folders ([ai-development.md](ai-development.md#claude-code-permissions)).
 - Permission rules match command text and can be bypassed. The real guards are the sandbox and the GitHub ruleset on `main` (no force push, no deletion, PR required, no bypass) ([repository.md](repository.md#github)). The user reviews and merges every PR.
 - The sandbox does not cover the Read, Edit, Write and web tools, nor hooks; permission rules are the only guard for them.
+- Commands outside the allow list ask, and Claude cannot leave the sandbox; only `just setup` runs outside it, after the user approves ([ai-development.md](ai-development.md#bash-sandbox)).
 - The reviewer agent reviews every branch before the user, with attention to secrets, permissions and network.
 
 ## Reporting

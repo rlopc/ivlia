@@ -38,4 +38,4 @@ repos:
         name: prettier
         entry: mise exec -- pnpm exec prettier --write --ignore-unknown
         language: unsupported
-        types_or: [javascript, ts, tsx, json, yaml, css]
+        files: \.(js|mjs|cjs|ts|tsx|json|jsonc|ya?ml|css)$

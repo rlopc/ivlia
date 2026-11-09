@@ -34,10 +34,10 @@ The [PR template](../../.github/pull_request_template.md) lists these checks.
 
 ## Versions policy
 
-- Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and `uv.lock` from step 2.
+- Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and `uv.lock` from step 2. Remote pre-commit hooks are pinned by revision in [.pre-commit-config.yaml](../../.pre-commit-config.yaml).
 - Cooldown: a version is used only when it is at least 7 days old.
   - mise: versions in `mise.toml` are chosen by hand to respect it.
-  - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) (pre-commit environments); `exclude-newer = "7 days"` in `pyproject.toml` from step 2.
+  - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) and in `[env]` of [mise.toml](../../mise.toml) (pre-commit environments, also when a hook is set up outside `just` in a shell with mise activated); `exclude-newer = "7 days"` in `pyproject.toml` from step 2.
   - pnpm: `minimumReleaseAge: 10080` (minutes) in [pnpm-workspace.yaml](../../pnpm-workspace.yaml).
   - Dependabot: `cooldown` from step 5.
 - Exceptions (for example an urgent security fix) are explicit and per package: `exclude-newer-package` in uv, `minimumReleaseAgeExclude` in pnpm.
