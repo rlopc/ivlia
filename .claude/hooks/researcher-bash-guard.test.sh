@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Pruebas de researcher-bash-guard.py. 
+# shellcheck disable=SC2016  # Los comandos de prueba son literales: no deben expandirse.
+# Pruebas de researcher-bash-guard.py.
 # Uso: .claude/hooks/researcher-bash-guard.test.sh
 # Cada caso: resultado esperado, agente y comando. Resultados: 0 permite y sigue el
 # flujo normal de permisos, A aprueba sin preguntar, 2 bloquea.
@@ -11,7 +12,8 @@ failures=0
 
 check() {
   local expected=$1 agent=$2 cmd=$3 actual out
-  out=$(jq -n --arg a "$agent" --arg c "$cmd" '{agent_type: $a, tool_input: {command: $c}}' |
+  out=$(python3 -I -c 'import json, sys
+print(json.dumps({"agent_type": sys.argv[1], "tool_input": {"command": sys.argv[2]}}))' "$agent" "$cmd" |
     python3 -I "$guard" 2>/dev/null)
   actual=$?
   [[ $actual == 0 && $out == *'"allow"'* ]] && actual=A

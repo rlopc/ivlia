@@ -1,0 +1,3 @@
+# frontend/ joins the workspace in step 4.
+# 7-day cooldown for new releases, in minutes.
+minimumReleaseAge: 10080

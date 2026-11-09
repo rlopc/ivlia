@@ -1,0 +1,11 @@
+# Markdown belongs to markdownlint.
+*.md
+
+# Generated files.
+pnpm-lock.yaml
+mise.lock
+.claude/commands/opsx/
+.claude/skills/openspec-*/
+
+# Local data.
+.dev/

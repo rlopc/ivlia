@@ -1,5 +1,99 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(just)",
+      "Bash(just *)",
+      "Bash(mise exec -- just *)",
+      "Bash(uv run --locked *)",
+      "Bash(uv sync --locked*)",
+      "Bash(pnpm install --frozen-lockfile*)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm run *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch)",
+      "Bash(git branch --list*)",
+      "Bash(git branch --show-current)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh run view*)",
+      "Bash(gh issue view*)"
+    ],
+    "ask": [
+      "Bash(just setup*)",
+      "Bash(just update-tools*)",
+      "Bash(mise exec -- just setup*)",
+      "Bash(mise exec -- just update-tools*)",
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm create *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm remove *)",
+      "Bash(pnpm update*)",
+      "Bash(uvx *)",
+      "Bash(uv add *)",
+      "Bash(uv remove *)",
+      "Bash(uv lock --upgrade*)",
+      "Bash(uv pip *)",
+      "Bash(uv tool *)",
+      "Bash(git push*)",
+      "Bash(git rebase*)",
+      "Bash(git commit --amend*)",
+      "Bash(git reset*)",
+      "Bash(git branch -d*)",
+      "Bash(git branch -D*)",
+      "Bash(git clean*)",
+      "Bash(git rm *)",
+      "Bash(rm *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git push * --force-with-lease*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(gh pr merge*)",
+      "Read(~/Library/Application Support/ivlia/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.netrc)",
+      "Read(~/Library/Keychains/**)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": true,
+    "filesystem": {
+      "denyRead": [
+        "~/Library/Application Support/ivlia",
+        "~/.ssh",
+        "~/.gnupg",
+        "~/.aws",
+        "~/.config/gh",
+        "~/.netrc",
+        "~/Library/Keychains"
+      ],
+      "allowRead": ["~/.ssh/id_ed25519.pub"]
+    },
+    "network": {
+      "allowedDomains": ["github.com", "api.github.com"]
+    }
+  },
   "hooks": {
     "PreToolUse": [
       {
