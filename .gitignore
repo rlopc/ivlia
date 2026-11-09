@@ -1,3 +1,26 @@
+# Local-only files
 *.local.*
 .DS_Store
+
+# Dev installation data, Validar reports and review diffs
 .dev/
+
+# mise local state
+.mise/
+
+# Python
+.venv/
+__pycache__/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node
+node_modules/
+
+# Build outputs
+dist/
+
+# Playwright
+playwright-report/
+test-results/

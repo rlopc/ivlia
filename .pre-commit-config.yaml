@@ -1,0 +1,41 @@
+# Tools that have a lockfile (mise.lock, pnpm-lock.yaml) run as local hooks
+# with the locked version, through `mise exec` so they work even where mise is
+# not activated (IDEs, git GUIs). The rest are pinned by revision.
+minimum_pre_commit_version: "4.5.0"
+
+repos:
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.31.1
+    hooks:
+      - id: zizmor
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks
+        entry: mise exec -- gitleaks git --pre-commit --redact --staged --no-banner
+        language: unsupported
+        pass_filenames: false
+
+      - id: actionlint
+        name: actionlint
+        entry: mise exec -- actionlint
+        language: unsupported
+        files: ^\.github/workflows/.*\.ya?ml$
+
+      - id: markdownlint-cli2
+        name: markdownlint-cli2
+        entry: mise exec -- pnpm exec markdownlint-cli2 --fix
+        language: unsupported
+        types: [markdown]
+
+      - id: prettier
+        name: prettier
+        entry: mise exec -- pnpm exec prettier --write --ignore-unknown
+        language: unsupported
+        files: \.(js|mjs|cjs|ts|tsx|json|jsonc|ya?ml|css)$

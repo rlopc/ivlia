@@ -1,0 +1,21 @@
+# Tool versions for development and CI. pnpm is pinned in package.json
+# (packageManager); Python is pinned by uv in backend/.python-version.
+[tools]
+node = "26.13.0"
+uv = "0.13.6"
+just = "1.59.0"
+lychee = "0.24.2"
+gitleaks = "8.30.1"
+actionlint = "1.7.12"
+"pipx:pre-commit" = { version = "4.7.0", with = ["pre-commit-uv==4.4.1"] }
+
+[env]
+# Same 7-day cooldown when pre-commit resolves hook environments outside `just`.
+UV_EXCLUDE_NEWER = "7 days"
+# Root tools (OpenSpec, Prettier, markdownlint-cli2) by name, as OpenSpec's skills expect.
+_.path = ["{{ config_root }}/node_modules/.bin"]
+
+[settings]
+lockfile = true
+lockfile_platforms = ["macos-arm64", "linux-x64"]
+idiomatic_version_file_enable_tools = ["pnpm"]
