@@ -45,12 +45,13 @@ Publishing results restricts the workflow: no `env` or `defaults`, no `run` step
 | Ecosystem | Directory | Updates |
 | --- | --- | --- |
 | `uv` | `/backend` | `pyproject.toml`, `uv.lock` |
-| `npm` | `/` | the pnpm workspace, `pnpm-lock.yaml`; whether it also updates `frontend/package.json` is checked after the merge (the alternative is `directories: ["/", "/frontend"]`) |
+| `npm` | `/` | the pnpm workspace (root and `frontend/`), `pnpm-lock.yaml`; TypeScript majors are ignored while typescript-eslint does not support them |
 | `github-actions` | `/` | the workflows' SHAs and version comments |
 | `pre-commit` | `/` | `rev` in `.pre-commit-config.yaml` |
 
 - Weekly, with `cooldown: default-days: 7`, the same cooldown as uv, pnpm and mise ([README](README.md#versions-policy)). No groups.
-- Titles: `prefix` and `prefix-development` `build(deps)`, which by Dependabot's documented colon rule should give `build(deps): …`, a title the check accepts; the first Dependabot PR confirms it. `include: "scope"` is not used: it would give `build(deps-dev)`, a scope the check rejects.
+- Titles: `prefix` and `prefix-development` `build(deps)` give `build(deps): bump …`, which the title check accepts (checked on the first Dependabot PRs, 2026-11-10). `include: "scope"` is not used: it would give `build(deps-dev)`, a scope the check rejects.
 - Security updates are enabled by the user in the repository settings; they ignore the cooldown.
-- Risk to check on the first uv update: `required-version` of uv in `backend/pyproject.toml` refuses other uv versions, and Dependabot runs its own. If it fails, widen the range or keep uv updates by hand.
+- uv's `required-version` in `backend/pyproject.toml` does not stop Dependabot's uv updates (checked on the first one, 2026-11-10).
+- An update that the project's decisions rule out goes in `ignore`, with a comment pointing to the decision.
 - mise is not a Dependabot ecosystem. `tool-updates.yml` reminds monthly to run `just update-tools`, which runs `mise upgrade --bump`: mise's own `minimum_release_age = "7d"` (in `mise.toml`, checked in mise's settings reference) keeps the same cooldown. Nothing updates three pins, so the reminder lists them: mise's version in `ci.yml`, `pre-commit-uv` in `mise.toml`, and uv's `required-version` in `backend/pyproject.toml`.

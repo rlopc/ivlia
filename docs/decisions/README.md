@@ -31,6 +31,6 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | pnpm pinned in `mise.toml`, not in `packageManager`, so `pnpm-lock.yaml` is one YAML document that the dependency graph reads | Provisional | When GitHub's dependency graph reads two-document pnpm lockfiles | [repository.md](../standards/repository.md#tool-versions) |
 | No Zod for the contract: generated TypeScript types and an Ajv validator | Provisional | When the first form arrives | [api.md](../standards/api.md#frontend-types-and-validator) |
 | Chat built from assistant-ui's primitives inside the chat adapter, not its styled registry components | Provisional | The assistant-ui spike before slice 6 | [frontend.md](../standards/frontend.md#chat-ui) |
-| TypeScript 6.0, not 7 | Provisional | When typescript-eslint supports TypeScript 7 | [frontend.md](../standards/frontend.md#project) |
+| TypeScript 6.0, not 7; Dependabot ignores its majors | Provisional | When typescript-eslint supports TypeScript 7 | [frontend.md](../standards/frontend.md#project) |
 | Vite proxy with `changeOrigin: true`; the Host allowlist is not widened for the dev origin | Final | — | [api.md](../standards/api.md#same-origin-and-dev-origin) |
 | Strict Content-Security-Policy on the SPA (`connect-src 'self'`) | Final | — | [api.md](../standards/api.md#same-origin-and-dev-origin) |

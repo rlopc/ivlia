@@ -14,11 +14,16 @@ updates:
       prefix: build(deps)
       prefix-development: build(deps)
 
-  # The pnpm workspace, with the root pnpm-lock.yaml.
+  # The pnpm workspace (root and frontend/), with the root pnpm-lock.yaml.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # typescript-eslint supports TypeScript < 6.1: stay on 6.x until it
+      # supports 7 (docs/decisions/README.md, "TypeScript 6.0, not 7").
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     cooldown:
       default-days: 7
     commit-message:
