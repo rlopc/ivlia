@@ -37,8 +37,9 @@ Web pages, documents and tool results can carry instructions.
 ### Compromised dependencies and tools
 
 - Exact pins, lockfiles and a 7-day cooldown ([README](README.md#versions-policy)).
-- Binaries installed by mise are verified with the checksums in `mise.lock`; pre-commit hooks are pinned by revision or run locally from lockfiles ([repository.md](repository.md#pre-commit)). Known gap: pipx tools have no checksum ([repository.md](repository.md#known-limitations-and-risks-to-revisit)).
-- GitHub Actions pinned and audited with zizmor and actionlint. CodeQL, Dependabot and OpenSSF Scorecard arrive in step 5.
+- `mise.lock` records the checksums of the binaries mise downloads; pre-commit hooks are pinned by revision or run locally from lockfiles ([repository.md](repository.md#pre-commit)). pre-commit's dependencies are pinned with hashes in `.mise/locks/`. Known gap: whether `mise install` without `--locked` (local and CI) verifies the checksums in `mise.lock` is not confirmed ([repository.md](repository.md#known-limitations-and-risks-to-revisit)). mise itself is verified against its signed checksums by mise-action in CI.
+- GitHub Actions pinned by SHA, with minimal permissions, and audited with zizmor and actionlint ([ci.md](ci.md#rules-for-every-workflow)).
+- CodeQL (Python, JavaScript/TypeScript, workflows), Dependabot version and security updates with a 7-day cooldown, `pnpm audit` in CI, and OpenSSF Scorecard ([ci.md](ci.md)).
 
 ### The AI agent acting outside its scope
 

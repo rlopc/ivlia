@@ -10,14 +10,14 @@ The standards document describes the current state of the project's tools and pr
 - [backend.md](backend.md): the Python package: layers, typing, tests, configuration, secrets, migrations, logs and traces, `ivlia-server`.
 - [api.md](api.md): the HTTP API: contract and its export, frontend types and validator, OpenAPI, endpoints, same origin and dev origin, Host and Origin, token, web session.
 - [frontend.md](frontend.md): the SPA: layout and boundaries, lint and types, SSE client, chat, tests, end-to-end and accessibility.
-- `ci.md`: added in step 5.
+- [ci.md](ci.md): GitHub Actions workflows, their security rules, required checks and Dependabot.
 - `release.md`: added in step 6.
 
 ## Git
 
 - Short branches named `<type>/<short-description>` (for example `chore/repo-setup`), created from `main`, the only permanent branch.
 - One pull request per step, squash-merged into `main`. `main` always works and `just check` is green.
-- PR title: `<type>(<area>): <summary>`. Types are the standard Conventional Commits types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, `style`, `revert`). Areas: `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps` (dependency updates). After the squash the title is the commit message.
+- PR title: `<type>(<area>): <summary>`. Types are the standard Conventional Commits types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, `style`, `revert`). Areas: `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps` (dependency updates). After the squash the title is the commit message. CI checks the format ([ci.md](ci.md#workflows)).
 - The user reviews and merges every PR. Settings that enforce this: [repository.md](repository.md#github).
 
 ## Documentation rule
@@ -43,9 +43,12 @@ The [PR template](../../.github/pull_request_template.md) lists these checks.
 
 - Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and [backend/pyproject.toml](../../backend/pyproject.toml) with `backend/uv.lock`. Remote pre-commit hooks are pinned by revision in [.pre-commit-config.yaml](../../.pre-commit-config.yaml).
 - Cooldown: a version is used only when it is at least 7 days old.
-  - mise: versions in `mise.toml` are chosen by hand to respect it.
+  - mise: `minimum_release_age = "7d"` in [mise.toml](../../mise.toml), which `mise upgrade` (`just update-tools`) respects. CI pins mise itself to the same version as the Mac ([ci.md](ci.md#the-ci-job)), and `min_version` in `mise.toml` refuses an older one.
   - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) and in `[env]` of [mise.toml](../../mise.toml) (pre-commit environments, also when a hook is set up outside `just` in a shell with mise activated); `exclude-newer = "7 days"` in [backend/pyproject.toml](../../backend/pyproject.toml).
   - pnpm: `minimumReleaseAge: 10080` (minutes) in [pnpm-workspace.yaml](../../pnpm-workspace.yaml).
-  - Dependabot: `cooldown` from step 5.
-- Exceptions (for example an urgent security fix) are explicit and per package: `exclude-newer-package` in uv, `minimumReleaseAgeExclude` in pnpm.
+  - Dependabot: `cooldown: default-days: 7` in every ecosystem ([ci.md](ci.md#dependabot)).
+- mise's cooldown needs a release date: for a version without one, mise warns that it could not check it; read the warnings of `just update-tools`.
+- Exceptions (for example an urgent security fix) are explicit and per package: `exclude-newer-package` in uv, `minimumReleaseAgeExclude` in pnpm, `minimum_release_age_excludes` in mise. Dependabot security updates ignore the cooldown.
+- Current exceptions:
+  - mise 2026.11.5 in CI, until 2026-11-16: `mise.lock` is in lockfile format 4, which mise 2026.11.0 (the newest release 7 days old on 2026-11-10) cannot read. CI uses the Mac's version instead.
 - Before using a version, the Validar step re-confirms it ([ai-development.md](ai-development.md#validar)).

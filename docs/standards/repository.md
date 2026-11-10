@@ -5,7 +5,7 @@
 - [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
 - pnpm is pinned only in `mise.toml`, not in `packageManager` of `package.json`: with `packageManager`, pnpm 12 writes `pnpm-lock.yaml` as two YAML documents, which GitHub's dependency graph does not read, so Dependabot would raise no security alerts for JavaScript. Corepack is not used.
 - Python is not in mise: uv reads [backend/.python-version](../../backend/.python-version). Python dependencies: [backend.md](backend.md#project).
-- pre-commit is installed by mise's pipx backend, which uses uv. `mise.lock` stores only its version, without checksum.
+- pre-commit is installed by mise's pipx backend, which uses uv. `mise.lock` stores its version, and `.mise/locks/pipx-pre-commit/` (versioned) its dependency graph: a `uv.lock` with the hash of every package. mise needs that folder to install it.
 - The root pnpm workspace ([pnpm-workspace.yaml](../../pnpm-workspace.yaml)) holds Prettier, markdownlint-cli2 and OpenSpec as exact dev dependencies, with a single `pnpm-lock.yaml`. `frontend/` is its other package ([frontend.md](frontend.md)).
 - `.mise/` (mise local state) is gitignored. A fresh clone needs `mise trust` before `mise install`.
 - `[env]` in `mise.toml` also sets `IVLIA_ENV=dev` and `IVLIA_HOME=<repo>/.dev`, so any command in the repository uses the dev installation ([backend.md](backend.md#configuration)).
@@ -22,14 +22,16 @@ Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
 - `just fix`: Prettier and markdownlint auto-fixes.
+- `just update-tools`: `mise upgrade --bump`, which upgrades every tool in `mise.toml` to its newest release at least 7 days old and updates `mise.lock`. Uses the network. `tool-updates.yml` reminds monthly ([ci.md](ci.md#dependabot)).
 - `just review-diff`: writes the diff against `main` and the changed-file list to `.dev/review/` for the reviewer agent.
 
 ## Pre-commit
 
 Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit and pre-commit-uv.
 
+- Dependabot updates the `rev` of remote hooks ([ci.md](ci.md#dependabot)).
 - Rule: a tool that has a lockfile runs as a local hook with the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation).
-  - gitleaks and actionlint: installed by mise (binaries with checksums in `mise.lock`).
+  - gitleaks and actionlint: installed by mise (binaries whose checksums `mise.lock` records).
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
 - zizmor and shellcheck have no lockfile in the repository: they are remote hooks pinned by revision.
@@ -47,7 +49,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 
 Never edited by hand; regenerated with their command and excluded from Prettier and markdownlint.
 
-- Lockfiles: `pnpm-lock.yaml`, `mise.lock` and `backend/uv.lock`.
+- Lockfiles: `pnpm-lock.yaml`, `mise.lock` with `.mise/locks/` (regenerate with `mise lock`), and `backend/uv.lock`.
 - `backend/schemas/events.schema.json` and `backend/schemas/openapi.json`: regenerate with `just contract` ([api.md](api.md#export)).
 - `frontend/src/contract/`: regenerate with `just contract` ([api.md](api.md#frontend-types-and-validator)). Also excluded from ESLint, coverage and knip.
 - OpenSpec output: `.claude/skills/openspec-*/` and `.claude/commands/opsx/` (regenerate with `openspec update` after an upgrade). See [ai-development.md](ai-development.md#openspec).
@@ -56,14 +58,14 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 ## Link checking
 
-`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. External links are checked weekly in CI from step 5.
+`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
 
 ## Repository files
 
 - `README.md`, `SECURITY.md`, `CONTRIBUTING.md` and `LICENSE` at the root.
 - `.github/`: [pull request template](../../.github/pull_request_template.md) and issue forms (bug report, feature request) with blank issues disabled and a link to private security reporting.
 - No CODEOWNERS, Code of Conduct or DCO until contributions open.
-- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), `.mise/`, the backend scratch folders of the lint hook test, and build and cache outputs.
+- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), mise's local state in `.mise/` except `.mise/locks/`, the backend scratch folders of the lint hook test, and build and cache outputs.
 
 ## License
 
@@ -72,12 +74,13 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 ## GitHub
 
 - Only squash merging is allowed. The commit title is the PR title and the body is blank.
-- Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only. Required status checks are added in step 5.
+- Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only, and the required status checks of [ci.md](ci.md#workflows).
 - Private vulnerability reporting is enabled (see [SECURITY.md](../../SECURITY.md)).
 - Secret scanning and push protection are enabled (default on public repositories).
 
 ## Known limitations and risks to revisit
 
-- pipx tools have no checksum in `mise.lock`. `just setup` runs `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python. Whether checksums are still verified without `--locked` is to be confirmed in the step 5 Validar.
-- gitleaks is in maintenance mode (security fixes only). Revisit.
+- `just setup` and CI run `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python (checked 2026-11-10). Whether the checksums in `mise.lock` are still verified without `--locked` is not confirmed; mise's docs say only that a recorded checksum is still verified for backends exempt from strict mode. pre-commit's own dependencies are pinned with hashes in `.mise/locks/`. Revisit.
+- Dependency overrides in [pnpm-workspace.yaml](../../pnpm-workspace.yaml) (`overrides`) carry a security fix that a dependency has not released yet. Each one says when to remove it.
+- gitleaks is in maintenance mode (security fixes only); its README points to Betterleaks, by the same maintainer. Revisit.
 - prek is still 0.x. Revisit at 1.0.

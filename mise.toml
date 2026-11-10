@@ -1,5 +1,8 @@
 # Tool versions for development and CI. Python is pinned by uv in
 # backend/.python-version.
+# mise.lock uses lockfile format 4; older mise fails to read it.
+min_version = "2026.11.5"
+
 [tools]
 node = "26.13.0"
 # Here, not in package.json's packageManager: with it, pnpm 12 writes a
@@ -22,5 +25,7 @@ IVLIA_HOME = "{{ config_root }}/.dev"
 _.path = ["{{ config_root }}/node_modules/.bin"]
 
 [settings]
+# Same 7-day cooldown as uv and pnpm, for `mise upgrade` (just update-tools).
+minimum_release_age = "7d"
 lockfile = true
 lockfile_platforms = ["macos-arm64", "linux-x64"]

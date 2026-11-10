@@ -2,3 +2,8 @@ packages:
   - frontend
 # 7-day cooldown for new releases, in minutes.
 minimumReleaseAge: 10080
+# Security fix through a dependency that has not released it yet. Remove when
+# markdownlint-cli2 depends on markdownlint 0.42.1 or later (re2js >= 2.8.7).
+overrides:
+  # GHSA-gg6h-894w-4m9c (high): re2js < 2.8.7, through markdownlint 0.42.0.
+  re2js: 2.9.1
