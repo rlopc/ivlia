@@ -5,7 +5,7 @@ import pytest
 from api_client import AUTH, make_client
 
 from ivlia.api.sessions import (
-    COOKIE_NAME,
+    COOKIE_NAMES,
     LINK_LIFETIME,
     SESSION_LIFETIME,
     SessionStore,
@@ -39,11 +39,11 @@ def client(clock: FakeClock) -> TestClient:
     return make_client(sessions=SessionStore(clock))
 
 
-def _link_path(client: TestClient) -> str:
+def _link_path(client: TestClient, port: int = 8765) -> str:
     response = client.post("/api/session/link", headers=AUTH)
     assert response.status_code == 200
     url = urlsplit(response.json()["url"])
-    assert url.netloc == "127.0.0.1:8765"
+    assert url.netloc == f"127.0.0.1:{port}"
     return f"{url.path}?{url.query}"
 
 
@@ -60,7 +60,7 @@ def test_link_redirects_to_the_web_with_a_strict_http_only_cookie(
     assert response.status_code == 303
     assert response.headers["location"] == "/"
     cookie = response.headers["set-cookie"]
-    assert cookie.startswith(f"{COOKIE_NAME}=")
+    assert cookie.startswith(f"{COOKIE_NAMES[Environment.USE]}=")
     for attribute in ("HttpOnly", "SameSite=strict", "Path=/", "Max-Age=604800"):
         assert attribute in cookie
     assert "Secure" not in cookie
@@ -97,7 +97,7 @@ def test_unknown_link_is_rejected(client: TestClient) -> None:
 
 
 def test_unknown_cookie_gets_401(client: TestClient) -> None:
-    client.cookies.set(COOKIE_NAME, "made-up")
+    client.cookies.set(COOKIE_NAMES[Environment.USE], "made-up")
 
     assert client.post("/api/chat", json=CHAT).status_code == 401
 
@@ -137,3 +137,11 @@ def test_link_points_at_the_installation_port(env: Environment, port: int) -> No
     response = make_client(env).post("/api/session/link", headers=AUTH)
 
     assert urlsplit(response.json()["url"]).port == port
+
+
+def test_dev_installation_uses_its_own_cookie() -> None:
+    client = make_client(Environment.DEV)
+    response = client.get(_link_path(client, port=8766))
+
+    assert response.headers["set-cookie"].startswith("ivlia_session_dev=")
+    assert client.post("/api/chat", json=CHAT).status_code == 200

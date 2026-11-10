@@ -10,9 +10,12 @@ import time
 from collections.abc import Callable
 from datetime import timedelta
 
+from ivlia.config.installation import Environment
+
 LINK_LIFETIME = timedelta(seconds=60)
 SESSION_LIFETIME = timedelta(days=7)
-COOKIE_NAME = "ivlia_session"
+COOKIE_NAMES = {Environment.USE: "ivlia_session", Environment.DEV: "ivlia_session_dev"}
+"""One name per installation: both run on 127.0.0.1, and cookies ignore the port."""
 
 type Clock = Callable[[], float]
 

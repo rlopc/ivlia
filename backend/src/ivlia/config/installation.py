@@ -53,14 +53,17 @@ def resolve_installation(
         raise ConfigError(msg) from None
 
     raw_home = environ.get("IVLIA_HOME")
+    # Only releases are the use installation: a run from a source folder must
+    # never reach the real data or the system keyring.
+    if (env is not Environment.DEV or raw_home is None) and _installed_from_folder(
+        direct_url
+    ):
+        msg = (
+            "ivlia runs from a source folder, so it must use the dev installation: "
+            "set IVLIA_ENV=dev and IVLIA_HOME. `just` and mise set both."
+        )
+        raise ConfigError(msg)
     if raw_home is None:
-        if _installed_from_folder(direct_url):
-            msg = (
-                "IVLIA_HOME is not set and ivlia runs from a source folder. "
-                "Run it through `just` or with mise active, so it uses the "
-                "dev installation instead of your real data."
-            )
-            raise ConfigError(msg)
         return Installation(env=env, home=DEFAULT_HOME)
 
     home = Path(raw_home)

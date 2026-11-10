@@ -44,7 +44,7 @@ Web pages, documents and tool results can carry instructions.
 - Permission rules match command text and can be bypassed. The real guards are the sandbox and the GitHub ruleset on `main` (no force push, no deletion, PR required, no bypass) ([repository.md](repository.md#github)). The user reviews and merges every PR.
 - The sandbox does not cover the Read, Edit, Write and web tools, nor hooks; permission rules are the only guard for them.
 - Commands outside the allow list ask, and Claude cannot leave the sandbox; only `just setup` runs outside it, after the user approves ([ai-development.md](ai-development.md#bash-sandbox)).
-- The sandbox does not stop a command from using the system keychain. A run from the repository with `IVLIA_HOME` set but without `IVLIA_ENV=dev` counts as the use installation and stores its API token there. Manual runs during development always set `IVLIA_ENV=dev`.
+- The sandbox does not stop a command from using the system keychain. A run from the repository can only be the dev installation, which never uses the keychain: the start guard refuses anything else ([backend.md](backend.md#configuration)).
 - The reviewer agent reviews every branch before the user, with attention to secrets, permissions and network.
 
 ## Reporting

@@ -7,7 +7,6 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
 from starlette.responses import JSONResponse
 
-from ivlia.api.sessions import COOKIE_NAME, SessionStore
 from ivlia.config.installation import Environment
 
 if TYPE_CHECKING:
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
     from pydantic import SecretStr
     from starlette.types import ASGIApp, Receive, Scope, Send
 
+    from ivlia.api.sessions import SessionStore
     from ivlia.config.settings import Config
 
 
@@ -65,10 +65,8 @@ class HostOriginGuard:
 
 # auto_error=False: a missing credential gets the same 401 as a wrong one.
 _bearer = HTTPBearer(auto_error=False)
-_session_cookie = APIKeyCookie(name=COOKIE_NAME, auto_error=False)
 
 type _Bearer = Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)]
-type _SessionCookie = Annotated[str | None, Depends(_session_cookie)]
 
 
 def _unauthorized() -> HTTPException:
@@ -82,9 +80,25 @@ def _unauthorized() -> HTTPException:
 class Auth:
     """FastAPI dependencies that check the API token or a web session."""
 
-    def __init__(self, token: SecretStr, sessions: SessionStore) -> None:
+    def __init__(
+        self, token: SecretStr, sessions: SessionStore, cookie_name: str
+    ) -> None:
         self._token = token.get_secret_value().encode()
         self._sessions = sessions
+        # The cookie name depends on the installation, so this dependency is
+        # built here; FastAPI still declares the cookie in the OpenAPI document.
+        cookie = APIKeyCookie(name=cookie_name, auto_error=False)
+
+        async def token_or_session(
+            credentials: _Bearer, session_id: Annotated[str | None, Depends(cookie)]
+        ) -> None:
+            """The API token, or the session cookie of the web."""
+            if self._has_token(credentials):
+                return
+            if session_id is None or not self._sessions.is_valid(session_id):
+                raise _unauthorized()
+
+        self.token_or_session = token_or_session
 
     def _has_token(self, credentials: HTTPAuthorizationCredentials | None) -> bool:
         return credentials is not None and secrets.compare_digest(
@@ -94,13 +108,4 @@ class Auth:
     async def token(self, credentials: _Bearer) -> None:
         """Only the API token: `Authorization: Bearer <token>`."""
         if not self._has_token(credentials):
-            raise _unauthorized()
-
-    async def token_or_session(
-        self, credentials: _Bearer, session_id: _SessionCookie
-    ) -> None:
-        """The API token, or the session cookie of the web."""
-        if self._has_token(credentials):
-            return
-        if session_id is None or not self._sessions.is_valid(session_id):
             raise _unauthorized()

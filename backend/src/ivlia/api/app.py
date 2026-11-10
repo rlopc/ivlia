@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.sse import EventSourceResponse
 
 from ivlia.api.guards import Auth, HostOriginGuard, allowed_hosts, allowed_origins
-from ivlia.api.sessions import COOKIE_NAME, SESSION_LIFETIME, SessionStore
+from ivlia.api.sessions import COOKIE_NAMES, SESSION_LIFETIME, SessionStore
 from ivlia.api.tracing import RequestSpan
 from ivlia.config.installation import Environment
 from ivlia.contract.events import Event
@@ -59,7 +59,8 @@ def create_app(
     app.add_middleware(RequestSpan)
 
     sessions = sessions or SessionStore()
-    auth = Auth(token, sessions)
+    cookie_name = COOKIE_NAMES[config.installation.env]
+    auth = Auth(token, sessions, cookie_name)
     api = APIRouter(prefix="/api")
 
     @api.get("/health")
@@ -86,7 +87,7 @@ def create_app(
         response = RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
         # No Secure: Safari drops Secure cookies on http://localhost (WebKit 232088).
         response.set_cookie(
-            COOKIE_NAME,
+            cookie_name,
             session_id,
             max_age=int(SESSION_LIFETIME.total_seconds()),
             path="/",

@@ -59,7 +59,8 @@ The chat endpoint only serializes the events of the `Chat` use case: `token` eve
 `api/sessions.py`. The web never sees the token.
 
 - `POST /api/session/link`, with the token, mints a one-time code (256 random bits) valid for 60 seconds and returns its link. `ivlia web` (step 3) opens it in the browser.
-- `GET /api/session?code=...` exchanges the code, once, for a new session and sets the `ivlia_session` cookie: `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age` of 7 days.
+- `GET /api/session?code=...` exchanges the code, once, for a new session and sets the session cookie: `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age` of 7 days.
+- The cookie is `ivlia_session` in the use installation and `ivlia_session_dev` in dev. Both run on `127.0.0.1` and cookies ignore the port, so one shared name would make each installation overwrite the other's session in the same browser.
 - No `Secure` attribute: Safari does not keep `Secure` cookies on `http://localhost` (WebKit bug 232088).
 - Sessions live 7 days in server memory, so a restart ends every session. A used, expired or unknown code gets 401.
 - One check accepts the token or the cookie (`Auth.token_or_session`); minting a link accepts only the token.

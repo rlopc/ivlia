@@ -18,6 +18,8 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | httpx2 as the HTTP client, with no classic httpx | Final | — | [backend.md](../standards/backend.md#tests-and-coverage) |
 | Session cookie without `Secure` | Final | When Safari keeps `Secure` cookies on `http://localhost` | [api.md](../standards/api.md#web-session) |
 | LangSmith tracing and FastAPI's built-in telemetry off in code | Final | — | [backend.md](../standards/backend.md#third-party-telemetry) |
+| A run from a source folder starts only as the dev installation (`IVLIA_ENV=dev` and `IVLIA_HOME`) | Final | — | [backend.md](../standards/backend.md#configuration) |
+| One session cookie name per installation (`ivlia_session`, `ivlia_session_dev`) | Final | — | [api.md](../standards/api.md#web-session) |
 | An existing database with pending migrations does not start | Provisional | Slice 2, when backups arrive | [backend.md](../standards/backend.md#migrations) |
 | pre-commit, not prek | Provisional | When prek reaches 1.0 | [repository.md](../standards/repository.md#pre-commit) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |

@@ -72,7 +72,8 @@ def test_reload_is_refused_outside_dev_before_building(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("IVLIA_HOME", str(tmp_path))
+    use = Installation(env=Environment.USE, home=tmp_path)
+    monkeypatch.setattr(server, "resolve_installation", lambda: use)
     built: list[bool] = []
     monkeypatch.setattr(server, "build_server", lambda: built.append(True))
 

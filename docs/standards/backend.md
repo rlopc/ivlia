@@ -97,7 +97,7 @@ Design: [docs/07](../07-transversales.md) ("Configuración"). Code: `ivlia.confi
   - `IVLIA_ENV`: `use` (default) or `dev`.
   - `IVLIA_HOME`: the installation folder, an absolute path. Default: `~/Library/Application Support/ivlia`.
   - In the repository, `just` and mise set `IVLIA_ENV=dev` and `IVLIA_HOME=<repo>/.dev` ([justfile](../../justfile), `[env]` in [mise.toml](../../mise.toml)). mise overrides these variables for commands that run through its shims, such as `uv` inside the repository.
-- Start guard: if `IVLIA_HOME` is not set and the package was installed from a folder (PEP 610 `direct_url.json` with `dir_info`, as the editable install of `backend/` is), ivlia does not start and says why. A release installed from a wheel (`archive_info`) starts with the default folder.
+- Start guard: if the package was installed from a folder (PEP 610 `direct_url.json` with `dir_info`, as the editable install of `backend/` is), ivlia starts only as the dev installation, with `IVLIA_ENV=dev` and `IVLIA_HOME` set; otherwise it does not start and says why. So a run from the repository never reaches the real data or the system keyring. A release installed from a wheel (`archive_info`) is the use installation, with the default folder unless `IVLIA_HOME` says otherwise.
 - Settings: defaults in code (`ivlia.config.settings.Settings`), then `IVLIA_HOME/config.toml`, then `IVLIA_*` environment variables, with the environment winning. Unknown keys are errors. An invalid value stops the start with a message that names the setting and the value.
 - Settings today: `port` (default 8765 in use, 8766 in dev), `dev_origin`, `keyring_service` (default `ivlia`), `log_content` (default off) and `trace_console` (default off).
 
