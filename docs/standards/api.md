@@ -13,7 +13,7 @@ The HTTP API of `ivlia-server`, in `ivlia.api`. Design: [docs/02](../02-arquitec
 
 - `just contract` writes `backend/schemas/events.schema.json` (JSON Schema 2020-12, serialization mode) and `backend/schemas/openapi.json`, then generates the frontend's types and validator from the schema. All are generated, versioned and excluded from Prettier.
 - A test fails if either file differs from what the code generates. It was checked to fail after changing a model or a route without exporting again.
-- The OpenAPI document is built as for the use installation, without real settings or secrets. Its `info.version` is the package version.
+- The OpenAPI document is built as for the use installation, without real settings or secrets. Its `info.version` is the package version, so the release workflow regenerates it on each release PR ([release.md](release.md#release-workflow)).
 
 ## Frontend types and validator
 
