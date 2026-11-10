@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/rlopc/ivlia/compare/v0.1.0...v0.1.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* **repo:** resolve code scanning findings on test content and the security policy ([#18](https://github.com/rlopc/ivlia/issues/18)) ([77b5624](https://github.com/rlopc/ivlia/commit/77b56246490133485598966879fb6677670c2c1a))
+
 ## 0.1.0 (2026-11-10)
 
 
