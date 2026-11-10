@@ -19,6 +19,7 @@ default:
 setup:
     mise install
     pnpm install --frozen-lockfile
+    pnpm --filter ivlia-frontend exec playwright install chromium
     uv sync --locked --project backend
     pre-commit install
     pre-commit install-hooks
@@ -32,6 +33,7 @@ check:
     pnpm exec openspec validate --all --strict
     lychee --offline --include-fragments --no-progress --exclude-path node_modules --exclude-path .dev '**/*.md'
     just check-backend
+    just check-frontend
 
 # Backend checks. ruff runs as a pre-commit hook in `check`. --locked: never rewrite uv.lock.
 [working-directory: 'backend']
@@ -43,20 +45,39 @@ check-backend:
     uv run --locked coverage report --include='src/ivlia/domain/*' --fail-under=100
     uv run --locked coverage report --omit='src/ivlia/domain/*' --fail-under=95
 
+# Frontend checks. Prettier runs as a pre-commit hook in `check`.
+[working-directory: 'frontend']
+check-frontend:
+    pnpm run contract:check
+    pnpm exec tsc -b
+    pnpm run lint
+    pnpm run knip
+    pnpm run test
+    pnpm run build
+    pnpm run e2e
+
 # Run the API of the dev installation with reload.
 [working-directory: 'backend']
 dev:
     uv run --locked ivlia-server --reload
+
+# Run the API and the Vite dev server together; `ivlia web` opens Vite.
+dev-web:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    trap 'kill 0' EXIT
+    (cd backend && uv run --locked ivlia-server --reload) &
+    pnpm --filter ivlia-frontend run dev
 
 # Run the formatters and auto-fixes.
 fix:
     pnpm exec prettier --write .
     pnpm exec markdownlint-cli2 --fix "**/*.md"
 
-# Export the event contract and the OpenAPI document to backend/schemas/.
-[working-directory: 'backend']
+# Export the contract and OpenAPI to backend/schemas/, then generate frontend/src/contract/.
 contract:
-    uv run --locked python -m ivlia.api.schemas schemas
+    cd backend && uv run --locked python -m ivlia.api.schemas schemas
+    pnpm --filter ivlia-frontend run contract
 
 # Write the branch diff against main for the reviewer agent.
 review-diff:

@@ -7,7 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "contract": "node scripts/generate-contract.ts",
+    "contract:check": "node scripts/generate-contract.ts --check",
+    "lint": "eslint .",
+    "knip": "knip",
+    "test": "vitest run --coverage",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@assistant-ui/react": "0.15.32",
