@@ -31,7 +31,8 @@ Only tagged releases are installed for use. Download the wheel and its provenanc
 
 ```sh
 gh release download vX.Y.Z --repo rlopc/ivlia --pattern '*.whl*'
-gh attestation verify ivlia-X.Y.Z-py3-none-any.whl --repo rlopc/ivlia
+gh attestation verify ivlia-X.Y.Z-py3-none-any.whl --repo rlopc/ivlia \
+  --signer-workflow rlopc/ivlia/.github/workflows/release.yml
 uv tool install ./ivlia-X.Y.Z-py3-none-any.whl
 ```
 
