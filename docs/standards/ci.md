@@ -30,7 +30,7 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 
 ## The CI job
 
-- mise-action installs mise 2026.11.0 only (`install: false`), verified against its signed checksums; a `mise install` step installs the tools, with the job's read-only token to avoid GitHub API rate limits. The action would add `--locked`, which fails for pre-commit (pipx backend; see [repository.md](repository.md#known-limitations-and-risks-to-revisit)).
+- mise-action installs mise only (`install: false`), the same version as on the Mac, verified against its signed checksums; a `mise install` step installs the tools, with the job's read-only token to avoid GitHub API rate limits. The action would add `--locked`, which fails for pre-commit (pipx backend; see [repository.md](repository.md#known-limitations-and-risks-to-revisit)).
 - Checkout with `fetch-depth: 0`, because gitleaks scans the whole history.
 - Two caches: mise-action's own, of the installed tools (on by default, renewed every 30 days), and one `actions/cache` for the pnpm store, the uv cache and pre-commit's environments, keyed on their lockfiles and config. `uv cache prune --ci` keeps the uv part small. Playwright's browser is not cached, as Playwright advises; its system packages are installed on each run.
 - No cache in release workflows (step 6): a poisoned cache must never reach a published artifact.

@@ -24,6 +24,7 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | pre-commit, not prek | Provisional | When prek reaches 1.0 | [repository.md](../standards/repository.md#pre-commit) |
 | gitleaks for secret scanning | Provisional | gitleaks is in maintenance mode; revisit Betterleaks, its successor | [repository.md](../standards/repository.md#known-limitations-and-risks-to-revisit) |
 | PR title check on `pull_request`, not `pull_request_target` | Provisional | If the repository accepts fork pull requests | [ci.md](../standards/ci.md#rules-for-every-workflow) |
+| mise in CI pinned to the Mac's version (2026.11.5), a cooldown exception | Provisional | 2026-11-16, when 2026.11.5 is 7 days old | [README](../standards/README.md#versions-policy) |
 | `pnpm audit` in CI fails on high and critical advisories; fixes that a dependency has not released go in pnpm `overrides` | Final | — | [ci.md](../standards/ci.md#the-ci-job) |
 | mise tools updated by `just update-tools` and a monthly reminder issue, not Dependabot | Provisional | When Dependabot supports mise | [ci.md](../standards/ci.md#dependabot) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |

@@ -1,5 +1,8 @@
 # Tool versions for development and CI. Python is pinned by uv in
 # backend/.python-version.
+# mise.lock uses lockfile format 4; older mise fails to read it.
+min_version = "2026.11.5"
+
 [tools]
 node = "26.13.0"
 # Here, not in package.json's packageManager: with it, pnpm 12 writes a

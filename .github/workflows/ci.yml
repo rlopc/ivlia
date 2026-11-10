@@ -32,7 +32,9 @@ jobs:
       # runs as `just setup` does locally.
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
-          version: 2026.11.0
+          # Same mise as on the Mac: mise.lock is format 4, which needs it.
+          # Cooldown exception until 2026-11-16 (docs/standards/README.md).
+          version: 2026.11.5
           install: false
 
       - run: mise install
