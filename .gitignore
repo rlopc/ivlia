@@ -22,6 +22,8 @@ node_modules/
 
 # Build outputs
 dist/
+# The built SPA, which FastAPI serves (ivlia.api.spa)
+backend/src/ivlia/api/static/
 
 # Playwright
 playwright-report/

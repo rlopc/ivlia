@@ -10,6 +10,7 @@ from fastapi.sse import EventSourceResponse
 
 from ivlia.api.guards import Auth, HostOriginGuard, allowed_hosts, allowed_origins
 from ivlia.api.sessions import COOKIE_NAMES, SESSION_LIFETIME, SessionStore
+from ivlia.api.spa import mount_spa
 from ivlia.api.tracing import RequestSpan
 from ivlia.config.installation import Environment
 from ivlia.contract.events import Event
@@ -18,6 +19,8 @@ from ivlia.contract.sessions import SessionLink
 from ivlia.domain.agents.state import AgentState, Message
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from pydantic import SecretStr
 
     from ivlia.config.settings import Config
@@ -30,6 +33,7 @@ def create_app(
     token: SecretStr,
     chat: ChatTurn,
     sessions: SessionStore | None = None,
+    spa_dir: Path | None = None,
 ) -> FastAPI:
     dev = config.installation.env is Environment.DEV
     # /openapi.json is served in every installation; Swagger UI only in dev.
@@ -71,9 +75,7 @@ def create_app(
     async def mint_session_link() -> SessionLink:
         """A one-time link that opens the web with a session. Needs the token."""
         code = sessions.mint_link()
-        return SessionLink(
-            url=f"http://127.0.0.1:{config.port}/api/session?code={code}"
-        )
+        return SessionLink(url=f"{config.web_origin}/api/session?code={code}")
 
     @api.get("/session", status_code=status.HTTP_303_SEE_OTHER)
     async def open_session(code: str) -> RedirectResponse:
@@ -107,4 +109,6 @@ def create_app(
             yield event
 
     app.include_router(api)
+    if spa_dir is not None:
+        mount_spa(app, spa_dir)
     return app

@@ -21,7 +21,9 @@ AUTH = {"Authorization": f"Bearer {TOKEN}"}
 
 
 def make_client(
-    env: Environment = Environment.USE, sessions: SessionStore | None = None
+    env: Environment = Environment.USE,
+    sessions: SessionStore | None = None,
+    spa_dir: Path | None = None,
 ) -> TestClient:
     """A client of the hello-world app, sending ivlia's own Host."""
     config = Config(
@@ -29,7 +31,7 @@ def make_client(
         settings=Settings.model_construct(),
     )
     chat = Chat(build_graph(HelloWorldLLM()))
-    app = create_app(config, SecretStr(TOKEN), chat, sessions)
+    app = create_app(config, SecretStr(TOKEN), chat, sessions, spa_dir)
     return TestClient(
         app, base_url=f"http://127.0.0.1:{config.port}", follow_redirects=False
     )

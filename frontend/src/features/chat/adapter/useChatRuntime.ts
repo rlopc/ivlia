@@ -21,9 +21,7 @@ export function useChatRuntime() {
   const [isRunning, setIsRunning] = useState(false);
 
   async function onNew(message: AppendMessage): Promise<void> {
-    const text = message.content
-      .flatMap((part) => (part.type === "text" ? [part.text] : []))
-      .join("\n");
+    const text = messageText(message);
     const replyId = crypto.randomUUID();
     const updateReply = (change: (reply: ChatMessage) => ChatMessage) => {
       setMessages((current) =>
@@ -59,6 +57,13 @@ export function useChatRuntime() {
   });
 }
 
+/** The text of a message from the composer, which sends only text parts. */
+export function messageText(message: Pick<AppendMessage, "content">): string {
+  return message.content
+    .flatMap((part) => (part.type === "text" ? [part.text] : []))
+    .join("\n");
+}
+
 export function convertMessage(message: ChatMessage): ThreadMessageLike {
   const content = [{ type: "text" as const, text: message.text }];
   if (message.role === "user") {
@@ -68,11 +73,17 @@ export function convertMessage(message: ChatMessage): ThreadMessageLike {
     id: message.id,
     role: "assistant",
     content,
-    status:
-      message.status === "running"
-        ? { type: "running" }
-        : message.status === "complete"
-          ? { type: "complete", reason: "stop" }
-          : { type: "incomplete", reason: "error", error: message.error ?? "" },
+    status: replyStatus(message),
   };
+}
+
+function replyStatus(message: ChatMessage): ThreadMessageLike["status"] {
+  switch (message.status) {
+    case "running":
+      return { type: "running" };
+    case "complete":
+      return { type: "complete", reason: "stop" };
+    case "error":
+      return { type: "incomplete", reason: "error", error: message.error };
+  }
 }

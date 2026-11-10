@@ -131,6 +131,18 @@ def test_session_link_rejects_a_link_that_is_not_ivlias(body: bytes) -> None:
         _answer(200, body).session_link()
 
 
+def test_session_link_accepts_a_link_to_the_web_origin() -> None:
+    # In the dev installation the web is Vite, which proxies /api.
+    vite_link = "http://localhost:5173/api/session?code=abc"
+    body = b'{"url":"%s"}' % vite_link.encode()
+    http = httpx2.Client(
+        transport=httpx2.MockTransport(lambda _: httpx2.Response(200, content=body)),
+        base_url="http://127.0.0.1",
+    )
+    client = ApiClient(http, web_origin="http://localhost:5173")
+    assert client.session_link() == SessionLink(url=vite_link)
+
+
 def test_session_link_reports_an_error_status() -> None:
     with pytest.raises(ApiError, match="rejected the token"):
         _answer(401, b"{}").session_link()

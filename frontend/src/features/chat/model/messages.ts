@@ -1,12 +1,13 @@
 import type { ApiEvent } from "@/contract/events";
 
-export interface ChatMessage {
+export type ChatMessage = {
   readonly id: string;
   readonly role: "user" | "assistant";
   readonly text: string;
-  readonly status: "running" | "complete" | "error";
-  readonly error?: string;
-}
+} & (
+  | { readonly status: "running" | "complete" }
+  | { readonly status: "error"; readonly error: string }
+);
 
 export function userMessage(id: string, text: string): ChatMessage {
   return { id, role: "user", text, status: "complete" };
@@ -25,11 +26,8 @@ export function applyEvent(message: ChatMessage, event: ApiEvent): ChatMessage {
       return { ...message, status: "complete" };
     case "error":
       return failReply(message, event.message);
-    default: {
-      const unhandled: never = event;
-      return unhandled;
-    }
   }
+  // No default: TypeScript fails to compile if an event type is not handled.
 }
 
 export function failReply(message: ChatMessage, error: string): ChatMessage {

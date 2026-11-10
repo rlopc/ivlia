@@ -23,6 +23,19 @@ def test_default_port_depends_on_the_installation(
     assert load_config(_installation(tmp_path, env)).port == port
 
 
+@pytest.mark.parametrize(
+    ("env", "origin"),
+    [
+        (Environment.USE, "http://127.0.0.1:8765"),
+        (Environment.DEV, "http://localhost:5173"),
+    ],
+)
+def test_web_origin_is_vite_in_dev_and_the_api_in_use(
+    tmp_path: Path, env: Environment, origin: str
+) -> None:
+    assert load_config(_installation(tmp_path, env)).web_origin == origin
+
+
 def test_toml_overrides_defaults_and_environment_overrides_toml(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

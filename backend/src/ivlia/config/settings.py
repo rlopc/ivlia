@@ -53,6 +53,16 @@ class Config:
     def port(self) -> int:
         return self.settings.port or DEFAULT_PORTS[self.installation.env]
 
+    @property
+    def web_origin(self) -> str:
+        """Where the browser opens the web: Vite in dev, else the API itself.
+
+        The session cookie belongs to this origin, so one-time links point here.
+        """
+        if self.installation.env is Environment.DEV:
+            return self.settings.dev_origin
+        return f"http://127.0.0.1:{self.port}"
+
 
 def load_config(installation: Installation) -> Config:
     """Load and validate the settings, or raise `ConfigError` naming what fails."""

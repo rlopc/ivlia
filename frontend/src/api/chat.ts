@@ -29,8 +29,9 @@ export async function* streamChat(
     throw new ApiError(UNREACHABLE);
   }
   if (!response.ok) throw new ApiError(describeStatus(response.status));
-  if (response.body === null) {
-    throw new ApiError("The API sent an empty event stream.");
+  const contentType = response.headers.get("Content-Type") ?? "";
+  if (!contentType.startsWith("text/event-stream") || response.body === null) {
+    throw new ApiError("The API sent an invalid event stream.");
   }
 
   const reader = response.body

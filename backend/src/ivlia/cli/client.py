@@ -31,18 +31,21 @@ class ApiError(Exception):
 
 
 class ApiClient:
-    def __init__(self, http: httpx2.Client) -> None:
+    def __init__(self, http: httpx2.Client, web_origin: str | None = None) -> None:
+        """`web_origin` is where one-time links may point; by default, the API."""
         self._http = http
+        self._web_origin = web_origin or str(http.base_url).rstrip("/")
 
     @classmethod
-    def connect(cls, port: int, token: SecretStr) -> Self:
+    def connect(cls, port: int, token: SecretStr, web_origin: str) -> Self:
         """A client of the API on this Mac, authenticated with the token."""
         return cls(
             httpx2.Client(
                 base_url=f"http://127.0.0.1:{port}",
                 headers={"Authorization": f"Bearer {token.get_secret_value()}"},
                 timeout=5.0,
-            )
+            ),
+            web_origin,
         )
 
     def __enter__(self) -> Self:
@@ -90,8 +93,7 @@ class ApiClient:
             link = None
         # The link goes to the browser: accept only ivlia's own session page,
         # never whatever another program on the port answers.
-        page = self._http.base_url.join("/api/session")
-        if link is None or not link.url.startswith(f"{page}?"):
+        if link is None or not link.url.startswith(f"{self._web_origin}/api/session?"):
             msg = "The API sent an invalid session link."
             raise ApiError(msg)
         return link
