@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 license = "AGPL-3.0-or-later"
 dependencies = [
     "fastapi==0.162.0",
+    "httpx2==2.16.0",
     "keyring==25.7.0",
     "langgraph==1.2.19",
     "opentelemetry-api==1.45.2",
@@ -13,16 +14,17 @@ dependencies = [
     "pydantic==2.14.2",
     "pydantic-settings==2.16.2",
     "structlog==26.1.0",
+    "typer==0.27.3",
     "uvicorn==0.54.0",
 ]
 
 [project.scripts]
+ivlia = "ivlia.cli.app:main"
 ivlia-server = "ivlia.server:main"
 
 [dependency-groups]
 dev = [
     "coverage==7.17.0",
-    "httpx2==2.16.0",
     "import-linter==2.15",
     "mypy==2.4.1",
     "openapi-spec-validator==0.9.0",
@@ -92,7 +94,8 @@ source = ["ivlia"]
 # Thresholds, include and omit are per report, on the command line (justfile).
 show_missing = true
 skip_covered = true
-exclude_also = ["if __name__ == .__main__.:"]
+# assert_never marks code that type checking proves unreachable.
+exclude_also = ["if __name__ == .__main__.:", "assert_never\\("]
 
 [tool.importlinter]
 root_packages = ["ivlia"]
@@ -117,7 +120,7 @@ type = "forbidden"
 source_modules = ["ivlia.domain"]
 forbidden_modules = [
     "fastapi", "keyring", "langchain_core", "langgraph", "langsmith", "opentelemetry",
-    "pydantic", "pydantic_settings", "starlette", "structlog", "uvicorn",
+    "pydantic", "pydantic_settings", "starlette", "structlog", "typer", "uvicorn",
 ]
 
 [[tool.importlinter.contracts]]
@@ -139,3 +142,26 @@ ignore_imports = [
     "ivlia.application.orchestration.** -> langgraph",
     "ivlia.application.orchestration.** -> langsmith",
 ]
+
+[[tool.importlinter.contracts]]
+name = "The CLI uses ivlia only through the API"
+type = "forbidden"
+source_modules = ["ivlia.cli"]
+# Allowed: contract, config and application.maintenance.
+forbidden_modules = ["ivlia.application", "ivlia.domain"]
+# The contract and config may reach the domain: only direct imports count.
+allow_indirect_imports = true
+ignore_imports = [
+    "ivlia.cli.** -> ivlia.application.maintenance",
+    "ivlia.cli.** -> ivlia.application.maintenance.**",
+]
+# The CLI may not use maintenance yet, so the exception may match nothing.
+unmatched_ignore_imports_alerting = "none"
+
+[[tool.importlinter.contracts]]
+name = "Only the CLI client imports httpx2"
+type = "forbidden"
+source_modules = ["ivlia"]
+forbidden_modules = ["httpx2"]
+allow_indirect_imports = true
+ignore_imports = ["ivlia.cli.client -> httpx2"]

@@ -21,7 +21,7 @@ Web pages, documents and tool results can carry instructions.
 
 ### Malicious local web pages and DNS rebinding
 
-- The API listens only on `127.0.0.1` and requires a local token. The CLI sends it in a header; the web gets a one-time link exchanged for an `HttpOnly`, `SameSite=Strict` cookie. The API rejects requests whose `Host` or `Origin` is not its own ([docs/02](../02-arquitectura-e-interfaces.md), "API"). Details and tests: [api.md](api.md#host-and-origin), [api.md](api.md#web-session).
+- The API listens only on `127.0.0.1` and requires a local token. The CLI sends it in a header ([backend.md](backend.md#cli)); the web gets a one-time link exchanged for an `HttpOnly`, `SameSite=Strict` cookie. The API rejects requests whose `Host` or `Origin` is not its own ([docs/02](../02-arquitectura-e-interfaces.md), "API"). Details and tests: [api.md](api.md#host-and-origin), [api.md](api.md#web-session).
 
 ### Data leaks to models, logs or the repository
 

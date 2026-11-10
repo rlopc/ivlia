@@ -1,6 +1,6 @@
 # Backend
 
-The Python package `ivlia` in `backend/`: domain, application, adapters, API and (from step 3) the CLI. Design: [docs/02](../02-arquitectura-e-interfaces.md). The HTTP API has its own page: [api.md](api.md).
+The Python package `ivlia` in `backend/`: domain, application, adapters, API and the CLI. Design: [docs/02](../02-arquitectura-e-interfaces.md). The HTTP API has its own page: [api.md](api.md).
 
 ## Project
 
@@ -21,6 +21,7 @@ Layer first, in `backend/src/ivlia/`:
 | `config/` | installation identity, settings, secrets | `contract`, `domain` |
 | `application/` | use cases (`chat`), `orchestration` (LangGraph), `maintenance` | `config`, `contract`, `domain` |
 | `api/`, `adapters/`, `cli/` | HTTP API; port implementations, logs, traces, SQLite; command line | the layers below, not each other |
+| `cli/` (narrower) | the CLI, which reaches ivlia only through the API | `contract`, `config`, `application/maintenance` |
 | `bootstrap.py` | the composition root: builds everything in start order | everything |
 | `server.py` | `ivlia-server` | `bootstrap` and the layers below, never `adapters` directly |
 
@@ -30,7 +31,8 @@ Import rules, checked by import-linter (`[tool.importlinter]` in `pyproject.toml
 - The domain imports no framework (a `forbidden` contract listing the runtime dependencies).
 - Only `bootstrap` imports `adapters`; `server` reaches them only through it.
 - `langgraph`, `langsmith` and `langchain_core` are imported only in `application/orchestration` ([ADR 0001](../decisions/adr/0001-langgraph-orchestration.md)).
-- From step 3: `ivlia.cli` imports only `contract`, `config` and `application/maintenance`.
+- `ivlia.cli` imports only `contract`, `config` and `application/maintenance` (a `forbidden` contract on `application` and `domain`, with `maintenance` excepted). Only direct imports count, because `contract` and `config` may reach the domain.
+- Only `ivlia.cli.client` imports `httpx2`.
 
 Each contract was checked to fail when its rule is broken.
 
@@ -85,9 +87,9 @@ Not used: `FBT` (boolean arguments) and `ERA` (commented-out code).
 - Every warning is an error. The only exception is a known deprecation inside `langsmith`, ignored by message and module.
 - The `langsmith` pytest plugin, which comes with `langgraph`, is disabled (`-p no:langsmith_plugin`).
 - `tests/conftest.py` removes every `IVLIA_*` variable before each test and points `keyring` at its failing backend, so no test reaches the real keychain.
-- API tests use FastAPI's `TestClient`, which runs on httpx2 (Starlette 1.10). Classic httpx is not a dependency of ivlia; it arrives only through `langchain-core`.
+- API tests use FastAPI's `TestClient`, which runs on httpx2 (Starlette 1.10). httpx2 is also the CLI's HTTP client. Classic httpx is not a dependency of ivlia; it arrives only through `langchain-core`.
 - Async code is tested with `asyncio.run` inside synchronous tests; there is no async pytest plugin.
-- coverage.py runs once and reports twice (`just check-backend`): the domain at 100 %, the rest at 95 %. Branch coverage is on.
+- coverage.py runs once and reports twice (`just check-backend`): the domain at 100 %, the rest at 95 %. Branch coverage is on. Lines with `assert_never(` are excluded: type checking proves them unreachable.
 
 ## Configuration
 
@@ -144,6 +146,30 @@ Both are switched off in code and covered by tests, because an environment varia
 
 - LangSmith: `langsmith.configure(enabled=False)` in `application/orchestration/graph.py`. `LANGSMITH_TRACING=true` would otherwise send runs, with the messages, to LangSmith's cloud.
 - FastAPI's built-in telemetry: off ([api.md](api.md#tracing)).
+
+## CLI
+
+Design: [docs/02](../02-arquitectura-e-interfaces.md) ("CLI"). Code: `ivlia.cli`. Entry point: `ivlia` (`[project.scripts]`, `ivlia.cli.app:main`), built with Typer.
+
+- The CLI uses ivlia only through the HTTP API, like the web. It reads the port and the API token through `ivlia.config`, from the same installation as the server. It never creates the token: if there is none yet, it asks to start the server once.
+- Commands:
+  - `ivlia ask "<message>"` streams the answer to stdout as it arrives.
+  - `ivlia web` asks the API for a one-time link and opens the browser on it. It accepts only a link to the API's own session page (`/api/session?` on the same scheme, host and port), so another program on the port cannot make it open any URL. If no browser opens, it prints the link, which works once within 60 seconds.
+- `cli/client.py` is the API client and the only module that imports httpx2. It sends contract models and yields contract events parsed with the Pydantic models:
+  - Tolerant reader: an event whose `type` it does not know is skipped and logged with a fixed message, without its content. An event of a known type that does not validate is an error.
+  - httpx2 does not raise on an error status, so the client checks the status before reading the stream: 401 means the token was rejected.
+  - Every httpx2 request error (`RequestError`: connection, timeout, invalid stream, decoding) becomes an `ApiError` with a clear message.
+  - Timeouts: 5 seconds, except reading a chat stream, which has no limit, because a local model can take long to start. Ctrl-C stops it.
+- `cli/app.py` builds the Typer app with its ways out passed in (`build_app(connect, open_browser)`), so tests replace the API and the browser. A `match` on the event types ends in `assert_never`, so mypy fails if a new event type is not handled.
+- Errors and exit codes: a configuration error, an API or connection error, an error event, or a stream that ends without `end` prints `ivlia: <message>` to stderr and exits with status 1. Usage errors exit with status 2 (Typer), including a message that the contract rejects, such as an empty one. If part of the answer was printed, its line is ended first.
+- Tracebacks never show frame locals (`pretty_exceptions_show_locals=False`), because they could hold the token.
+- Logs: the CLI has no log file, because the JSON log is an adapter. Warnings go to stderr as one line, `ivlia: <message>`, without tracebacks.
+
+Tests (`backend/tests/cli/`):
+
+- Commands run through Typer's `CliRunner`, which keeps stdout and stderr apart.
+- Fake API: an `ApiClient` over an httpx2 `MockTransport`. Real API: the hello-world app through `TestClient`, which is an `httpx2.Client`, so the CLI streams from the real app without a server.
+- `ivlia web` uses a fake browser that records the URL; a test then checks that the API accepts the link once and sets the session cookie.
 
 ## Server
 
