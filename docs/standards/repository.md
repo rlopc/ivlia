@@ -22,6 +22,7 @@ Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
 - `just fix`: Prettier and markdownlint auto-fixes.
+- `just update-tools`: `mise upgrade --bump`, which upgrades every tool in `mise.toml` to its newest release at least 7 days old and updates `mise.lock`. Uses the network. `tool-updates.yml` reminds monthly ([ci.md](ci.md#dependabot)).
 - `just review-diff`: writes the diff against `main` and the changed-file list to `.dev/review/` for the reviewer agent.
 
 ## Pre-commit
@@ -56,7 +57,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 ## Link checking
 
-`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. External links are checked weekly in CI from step 5.
+`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
 
 ## Repository files
 
@@ -72,12 +73,12 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 ## GitHub
 
 - Only squash merging is allowed. The commit title is the PR title and the body is blank.
-- Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only. Required status checks are added in step 5.
+- Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only, and the required status checks of [ci.md](ci.md#workflows).
 - Private vulnerability reporting is enabled (see [SECURITY.md](../../SECURITY.md)).
 - Secret scanning and push protection are enabled (default on public repositories).
 
 ## Known limitations and risks to revisit
 
-- pipx tools have no checksum in `mise.lock`. `just setup` runs `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python. Whether checksums are still verified without `--locked` is to be confirmed in the step 5 Validar.
-- gitleaks is in maintenance mode (security fixes only). Revisit.
+- pipx tools have no checksum in `mise.lock`. `just setup` and CI run `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python (checked 2026-11-10). Whether the checksums of the other tools are still verified without `--locked` is not confirmed.
+- gitleaks is in maintenance mode (security fixes only); its README points to Betterleaks, by the same maintainer. Revisit.
 - prek is still 0.x. Revisit at 1.0.

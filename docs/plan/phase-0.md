@@ -318,7 +318,7 @@ None.
 
 ## Step 4: Frontend
 
-Status: in progress. PR title: `feat(frontend): <summary>`.
+Status: done. PR title: `feat(frontend): <summary>`.
 
 ### 4.1 Goal
 
@@ -375,8 +375,8 @@ Create the SPA in `frontend/` with one chat page that streams the hello-world an
 ### 4.4 User-only actions
 
 - [x] User only: confirm the Vite scaffold, the spike's dependencies, and then the rest of the list (including `shadcn init`).
-- [ ] User only: after the merge, check that Insights > Dependency graph lists the JavaScript dependencies (decision 2026-11-10).
-- [ ] User only: approve the push and merge the PR.
+- [x] User only: after the merge, check that Insights > Dependency graph lists the JavaScript dependencies (decision 2026-11-10).
+- [x] User only: approve the push and merge the PR.
 
 ### 4.5 Done criteria
 
@@ -398,7 +398,7 @@ None.
 
 ## Step 5: CI
 
-Status: todo. PR title: `ci(ci): <summary>`.
+Status: in progress. PR title: `ci(ci): <summary>`.
 
 ### 5.1 Goal
 
@@ -417,17 +417,17 @@ Run `just check` in GitHub Actions on every PR and on `main`, plus the CI-only c
 
 ### 5.3 Tasks
 
-- [ ] All workflows: actions pinned by full SHA with a version comment; top-level `permissions: {}` or `contents: read`, widened per job only where needed; `persist-credentials: false` on checkout (decision 2026-11-09).
-- [ ] `.github/workflows/ci.yml`: on `pull_request` and `push` to `main`; mise-action; `just setup`; `just check`. One job name that the ruleset can require.
-- [ ] `.github/workflows/codeql.yml`: CodeQL advanced, languages `python`, `javascript-typescript`, `actions` (decision 2026-11-09).
-- [ ] `.github/workflows/scorecard.yml`: OpenSSF Scorecard on `main` and weekly.
-- [ ] `.github/workflows/pr-title.yml`: amannn/action-semantic-pull-request v6; standard Conventional Commits types; scopes `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps`; scope required.
-- [ ] `.github/workflows/links.yml`: weekly and manual; lychee-action on all Markdown with network; on failure, open an issue or update the open one (with `gh`, assumed) (decision 2026-11-09). Internal links and anchors keep blocking in `just check`.
-- [ ] `.github/dependabot.yml`: `uv` (directory `/backend`), `npm` (root workspace), `github-actions` (`/`); `cooldown: default-days: 7`; no wildcard groups (decision 2026-11-09); commit message `build(deps)` per Validar (decision 2026-11-09). Also `pre-commit` and mise if Validar found them supported (decision 2026-11-09).
-- [ ] For each of pre-commit and mise that Dependabot does not support (decision 2026-11-09): `just update-tools` and `.github/workflows/tool-updates.yml` (name assumed), monthly, which opens an issue or updates the open one.
-- [ ] `pnpm audit` in `ci.yml` (decision 2026-11-10): a second layer next to Dependabot alerts for JavaScript.
-- [ ] `just check` passes zizmor and actionlint on the new workflows.
-- [ ] Update the standards document and `AGENTS.md` "Current state".
+- [x] All workflows: actions pinned by full SHA with a version comment; top-level `permissions: {}` or `contents: read`, widened per job only where needed; `persist-credentials: false` on checkout (decision 2026-11-09).
+- [x] `.github/workflows/ci.yml`: on `pull_request` and `push` to `main`; mise-action; `just setup`; `just check`. One job name that the ruleset can require.
+- [x] `.github/workflows/codeql.yml`: CodeQL advanced, languages `python`, `javascript-typescript`, `actions` (decision 2026-11-09).
+- [x] `.github/workflows/scorecard.yml`: OpenSSF Scorecard on `main` and weekly.
+- [x] `.github/workflows/pr-title.yml`: amannn/action-semantic-pull-request v6; standard Conventional Commits types; scopes `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps`; scope required.
+- [x] `.github/workflows/links.yml`: weekly and manual; lychee-action on all Markdown with network; on failure, open an issue or update the open one (with `gh`, assumed) (decision 2026-11-09). Internal links and anchors keep blocking in `just check`.
+- [x] `.github/dependabot.yml`: `uv` (directory `/backend`), `npm` (root workspace), `github-actions` (`/`); `cooldown: default-days: 7`; no wildcard groups (decision 2026-11-09); commit message `build(deps)` per Validar (decision 2026-11-09). Also `pre-commit` and mise if Validar found them supported (decision 2026-11-09).
+- [x] For each of pre-commit and mise that Dependabot does not support (decision 2026-11-09): `just update-tools` and `.github/workflows/tool-updates.yml` (name assumed), monthly, which opens an issue or updates the open one. Outcome (Validar 2026-11-10): pre-commit is supported and is a Dependabot ecosystem; mise is not. `just update-tools` runs `mise upgrade --bump`, and mise's own `minimum_release_age = "7d"` keeps the cooldown, so no hand check of the age is needed.
+- [x] `pnpm audit` in `ci.yml` (decision 2026-11-10): a second layer next to Dependabot alerts for JavaScript.
+- [x] `just check` passes zizmor and actionlint on the new workflows.
+- [x] Update the standards document and `AGENTS.md` "Current state".
 
 ### 5.4 User-only actions
 

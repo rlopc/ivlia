@@ -1,0 +1,68 @@
+# Runs every local check (`just check`) on each pull request and on main.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: just check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # gitleaks scans the whole history.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Only mise itself: the action would install with --locked, which fails
+      # for pre-commit (pipx backend, no lockfile URL). `mise install` below
+      # runs as `just setup` does locally.
+      - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+        with:
+          version: 2026.11.0
+          install: false
+
+      - run: mise install
+
+      - name: Find the cache folders
+        id: cache-paths
+        run: |
+          echo "pnpm=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+          echo "uv=$(uv cache dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ steps.cache-paths.outputs.pnpm }}
+            ${{ steps.cache-paths.outputs.uv }}
+            ~/.cache/pre-commit
+          key: deps-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'backend/uv.lock', '.pre-commit-config.yaml') }}
+          restore-keys: deps-${{ runner.os }}-
+
+      - run: just setup
+
+      # Playwright's own advice: install the browser's system packages on each
+      # run, and do not cache the browser.
+      - run: pnpm --filter ivlia-frontend exec playwright install-deps chromium
+
+      - run: just check
+
+      # Known vulnerabilities in the JavaScript dependencies, next to
+      # Dependabot alerts.
+      - run: pnpm audit --audit-level high
+
+      # Keeps the uv cache small: wheels built here, not downloaded ones.
+      - run: uv cache prune --ci

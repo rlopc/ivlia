@@ -22,5 +22,7 @@ IVLIA_HOME = "{{ config_root }}/.dev"
 _.path = ["{{ config_root }}/node_modules/.bin"]
 
 [settings]
+# Same 7-day cooldown as uv and pnpm, for `mise upgrade` (just update-tools).
+minimum_release_age = "7d"
 lockfile = true
 lockfile_platforms = ["macos-arm64", "linux-x64"]

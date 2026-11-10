@@ -78,6 +78,10 @@ contract:
     cd backend && uv run --locked python -m ivlia.api.schemas schemas
     pnpm --filter ivlia-frontend run contract
 
+# Upgrade the tools in mise.toml to their newest release at least 7 days old, and mise.lock. Uses the network.
+update-tools:
+    mise upgrade --bump
+
 # Write the branch diff against main for the reviewer agent.
 review-diff:
     mkdir -p .dev/review
