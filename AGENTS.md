@@ -9,7 +9,7 @@
 
 ## Current state
 
-- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Steps 1 to 5 (repository, backend, CLI, frontend, CI) are done; step 6 (release) is in progress, with its PR in review; next: the final PR that archives the plan.
+- **Fase 0** is done (release v0.1.0): the development environment works end to end with a hello-world chat. Next: slice 2 ([docs/10](docs/10-plan-y-pendientes.md)), built with OpenSpec.
 - The backend is the Python package in `backend/`, CLI included: [backend](docs/standards/backend.md), [API](docs/standards/api.md). The SPA is in `frontend/`: [frontend](docs/standards/frontend.md). Decisions: [decision map](docs/decisions/README.md).
 - Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`. CI runs the same checks and more: [ci](docs/standards/ci.md). Releases: [release](docs/standards/release.md).
 - How the project is built and checked: the standards document, `docs/standards/README.md`.
