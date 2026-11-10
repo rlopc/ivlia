@@ -12,6 +12,9 @@ actionlint = "1.7.12"
 [env]
 # Same 7-day cooldown when pre-commit resolves hook environments outside `just`.
 UV_EXCLUDE_NEWER = "7 days"
+# The dev installation: its data stays in the repo's gitignored .dev/ folder.
+IVLIA_ENV = "dev"
+IVLIA_HOME = "{{ config_root }}/.dev"
 # Root tools (OpenSpec, Prettier, markdownlint-cli2) by name, as OpenSpec's skills expect.
 _.path = ["{{ config_root }}/node_modules/.bin"]
 

@@ -7,8 +7,8 @@ The standards document describes the current state of the project's tools and pr
 - [repository.md](repository.md): tool versions, `just`, pre-commit, repository files and GitHub settings.
 - [ai-development.md](ai-development.md): Claude Code configuration, Validar, reviewer and OpenSpec.
 - [security.md](security.md): threat model and security measures.
-- `backend.md`: added in step 2.
-- `api.md`: added in step 2.
+- [backend.md](backend.md): the Python package: layers, typing, tests, configuration, secrets, migrations, logs and traces, `ivlia-server`.
+- [api.md](api.md): the HTTP API: contract and its export, OpenAPI, endpoints, Host and Origin, token, web session.
 - `frontend.md`: added in step 4.
 - `ci.md`: added in step 5.
 - `release.md`: added in step 6.
@@ -32,12 +32,19 @@ Every pull request updates the documentation it affects in the same PR:
 
 The [PR template](../../.github/pull_request_template.md) lists these checks.
 
+## Decisions and ADRs
+
+- The decision map, [docs/decisions/README.md](../decisions/README.md), lists every technical decision with its status (Final or Provisional), when to revisit it and a link to where it is explained.
+- A decision that is hard to reverse and has defensible alternatives gets an ADR in [docs/decisions/adr/](../decisions/adr/): numbered (`NNNN-short-title.md`), MADR minimal format (context and problem, considered options, decision outcome, consequences), with `status` and `date` in its front matter.
+- ADRs are immutable. A change of mind is a new ADR; the old one gets `status: superseded by NNNN`.
+- The pull request that takes or changes a decision updates the map, and the ADR if there is one.
+
 ## Versions policy
 
-- Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and `uv.lock` from step 2. Remote pre-commit hooks are pinned by revision in [.pre-commit-config.yaml](../../.pre-commit-config.yaml).
+- Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and [backend/pyproject.toml](../../backend/pyproject.toml) with `backend/uv.lock`. Remote pre-commit hooks are pinned by revision in [.pre-commit-config.yaml](../../.pre-commit-config.yaml).
 - Cooldown: a version is used only when it is at least 7 days old.
   - mise: versions in `mise.toml` are chosen by hand to respect it.
-  - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) and in `[env]` of [mise.toml](../../mise.toml) (pre-commit environments, also when a hook is set up outside `just` in a shell with mise activated); `exclude-newer = "7 days"` in `pyproject.toml` from step 2.
+  - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) and in `[env]` of [mise.toml](../../mise.toml) (pre-commit environments, also when a hook is set up outside `just` in a shell with mise activated); `exclude-newer = "7 days"` in [backend/pyproject.toml](../../backend/pyproject.toml).
   - pnpm: `minimumReleaseAge: 10080` (minutes) in [pnpm-workspace.yaml](../../pnpm-workspace.yaml).
   - Dependabot: `cooldown` from step 5.
 - Exceptions (for example an urgent security fix) are explicit and per package: `exclude-newer-package` in uv, `minimumReleaseAgeExclude` in pnpm.

@@ -2,6 +2,7 @@
 *.md
 
 # Generated files.
+backend/schemas/
 pnpm-lock.yaml
 mise.lock
 .claude/commands/opsx/

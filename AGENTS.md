@@ -9,10 +9,12 @@
 
 ## Current state
 
-- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Step 1 (repository and `just`) is in review; next step: backend.
+- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Step 1 (repository and `just`) is done; step 2 (backend) is in review; next step: CLI.
+- The backend is the Python package in `backend/`: [backend](docs/standards/backend.md), [API](docs/standards/api.md). Decisions: [decision map](docs/decisions/README.md).
+- Manual runs of `ivlia-server` always use the dev installation (`IVLIA_ENV=dev`): the use installation stores its token in the real keychain.
 - Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`.
 - How the project is built and checked: the standards document, `docs/standards/README.md`.
-- `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `reviewer` agent and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
+- `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `reviewer` agent, the ruff hook after Python edits, the rules per zone (`.claude/rules/`) and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
 
 ## How to work with the user
 

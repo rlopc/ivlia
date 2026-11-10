@@ -1,0 +1,141 @@
+[project]
+name = "ivlia"
+version = "0.0.0"
+description = "Personal learning platform: backend, API and CLI."
+requires-python = ">=3.14"
+license = "AGPL-3.0-or-later"
+dependencies = [
+    "fastapi==0.162.0",
+    "keyring==25.7.0",
+    "langgraph==1.2.19",
+    "opentelemetry-api==1.45.2",
+    "opentelemetry-sdk==1.45.2",
+    "pydantic==2.14.2",
+    "pydantic-settings==2.16.2",
+    "structlog==26.1.0",
+    "uvicorn==0.54.0",
+]
+
+[project.scripts]
+ivlia-server = "ivlia.server:main"
+
+[dependency-groups]
+dev = [
+    "coverage==7.17.0",
+    "httpx2==2.16.0",
+    "import-linter==2.15",
+    "mypy==2.4.1",
+    "openapi-spec-validator==0.9.0",
+    "pytest==9.2.0",
+    "ruff==0.17.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv]
+required-version = ">=0.13.6,<0.14"
+exclude-newer = "7 days"
+
+[tool.ruff.lint]
+# Curated families, each with its reason in docs/standards/backend.md.
+select = [
+    "F", "E", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RET", "PIE", "S", "BLE",
+    "TRY", "DTZ", "PTH", "TC", "ASYNC", "PT", "ARG", "PERF", "PL", "G", "LOG", "T20",
+    "RUF",
+]
+# Line length is left to the formatter.
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-type-checking]
+# Pydantic and FastAPI read annotations at run time: their imports must stay real.
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "pydantic_settings.BaseSettings"]
+runtime-evaluated-decorators = ["fastapi.APIRouter.get", "fastapi.APIRouter.post"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert, and compare with literal values.
+"tests/**" = ["S101", "PLR2004"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests"]
+# Test helpers are imported from tests/, as pytest's pythonpath does.
+mypy_path = ["src", "tests"]
+explicit_package_bases = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest]
+testpaths = ["tests"]
+# Port contract base classes and test helpers are imported from tests/.
+pythonpath = ["tests"]
+# importlib: the import mode pytest recommends for new projects.
+# langsmith (pulled in by langgraph) registers a pytest plugin we do not use.
+addopts = ["--import-mode=importlib", "-p", "no:langsmith_plugin"]
+# Any warning fails the tests, except known ones from dependencies.
+filterwarnings = [
+    "error",
+    # langsmith calls asyncio.iscoroutinefunction, deprecated in Python 3.14.
+    "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning:langsmith",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["ivlia"]
+
+[tool.coverage.report]
+# Thresholds, include and omit are per report, on the command line (justfile).
+show_missing = true
+skip_covered = true
+exclude_also = ["if __name__ == .__main__.:"]
+
+[tool.importlinter]
+root_packages = ["ivlia"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Dependencies point inwards"
+type = "layers"
+layers = [
+    "ivlia.server",
+    "ivlia.bootstrap",
+    "ivlia.api | ivlia.adapters | ivlia.cli",
+    "ivlia.application",
+    "ivlia.config",
+    "ivlia.contract",
+    "ivlia.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "The domain imports no framework"
+type = "forbidden"
+source_modules = ["ivlia.domain"]
+forbidden_modules = [
+    "fastapi", "keyring", "langchain_core", "langgraph", "langsmith", "opentelemetry",
+    "pydantic", "pydantic_settings", "starlette", "structlog", "uvicorn",
+]
+
+[[tool.importlinter.contracts]]
+name = "Only bootstrap imports adapters"
+type = "forbidden"
+source_modules = ["ivlia.server"]
+forbidden_modules = ["ivlia.adapters"]
+# The server reaches adapters only through bootstrap.
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "LangGraph and LangSmith stay in application.orchestration"
+type = "forbidden"
+source_modules = ["ivlia"]
+forbidden_modules = ["langgraph", "langsmith", "langchain_core"]
+# Whoever calls orchestration reaches LangGraph through it: that is allowed.
+allow_indirect_imports = true
+ignore_imports = [
+    "ivlia.application.orchestration.** -> langgraph",
+    "ivlia.application.orchestration.** -> langsmith",
+]

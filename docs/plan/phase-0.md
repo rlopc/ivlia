@@ -58,7 +58,7 @@ These apply to every step. They come from [docs/08](../08-ingenieria-y-calidad.m
 
 ## Step 1: Repository and `just`
 
-Status: in progress. PR title: `chore(repo): <summary>`.
+Status: done. PR title: `chore(repo): <summary>`.
 
 ### 1.1 Goal
 
@@ -133,7 +133,7 @@ Order of the first tasks (assumed): initial commit, gitleaks scan, the user crea
 - [x] User only: repository settings: allow only squash merging; default squash message = PR title ([docs/08](../08-ingenieria-y-calidad.md), "Git").
 - [x] User only: ruleset on `main`, no bypass: require PR with 0 approvals, squash only, linear history, block force pushes and deletion. Required status checks are added in step 5 (decision 2026-11-09).
 - [x] User only: enable private vulnerability reporting.
-- [ ] User only: approve the push of the step 1 branch and merge the PR.
+- [x] User only: approve the push of the step 1 branch and merge the PR.
 
 ### 1.5 Done criteria
 
@@ -163,7 +163,7 @@ None.
 
 ## Step 2: Backend
 
-Status: todo. PR title: `feat(backend): <summary>`.
+Status: in progress. PR title: `feat(backend): <summary>`.
 
 ### 2.1 Goal
 
@@ -189,62 +189,62 @@ Create the Python package `ivlia` in `backend/` with its layers and a hello-worl
 
 ### 2.3 Tasks
 
-- [ ] Create a simple uv project (not a workspace) in `backend/` (decision 2026-11-09), src layout (assumed): `backend/pyproject.toml` (name `ivlia`, `version = "0.0.0"` (assumed), `requires-python = ">=3.14"`, `license = "AGPL-3.0-or-later"`, build backend `uv_build` until step 6 confirms it, assumed), `backend/.python-version` (`3.14`), `[tool.uv]` with `required-version` and `exclude-newer = "7 days"`, `backend/uv.lock`.
-- [ ] Add only the spike's dependencies; the user confirms first: fastapi; dev group: pytest, openapi-spec-validator (assumed).
-- [ ] Spike: OpenAPI 3.2 (decision 2026-11-09), before the rest of the step. A minimal FastAPI app with `openapi_version="3.2.0"` and one SSE endpoint. Replace the generated `itemSchema` with the contract union (`oneOf` + `discriminator`). Validate the document with openapi-spec-validator in a pytest test. If it works, the test stays as the OpenAPI test. If not, report to the user and propose the fallback: OpenAPI 3.1 whose SSE response refers to the exported JSON Schema. The user decides.
-- [ ] Add the rest of the dependencies; the user confirms the list again. Runtime: uvicorn, pydantic, pydantic-settings, keyring, structlog, opentelemetry-api, opentelemetry-sdk, langgraph. Dev group: ruff, mypy, coverage, import-linter, httpx (only for `TestClient`, decision 2026-11-09). No pytest-cov (decision 2026-11-09). No langgraph-checkpoint-sqlite yet: checkpoints arrive in slice 2 ([docs/10](../10-plan-y-pendientes.md)).
-- [ ] Package layout, layer first (decision 2026-11-09), in `backend/src/ivlia/`:
+- [x] Create a simple uv project (not a workspace) in `backend/` (decision 2026-11-09), src layout (assumed): `backend/pyproject.toml` (name `ivlia`, `version = "0.0.0"` (assumed), `requires-python = ">=3.14"`, `license = "AGPL-3.0-or-later"`, build backend `uv_build` until step 6 confirms it, assumed), `backend/.python-version` (`3.14`), `[tool.uv]` with `required-version` and `exclude-newer = "7 days"`, `backend/uv.lock`.
+- [x] Add only the spike's dependencies; the user confirms first: fastapi; dev group: pytest, openapi-spec-validator (assumed).
+- [x] Spike: OpenAPI 3.2 (decision 2026-11-09), before the rest of the step. A minimal FastAPI app with `openapi_version="3.2.0"` and one SSE endpoint. Replace the generated `itemSchema` with the contract union (`oneOf` + `discriminator`). Validate the document with openapi-spec-validator in a pytest test. If it works, the test stays as the OpenAPI test. If not, report to the user and propose the fallback: OpenAPI 3.1 whose SSE response refers to the exported JSON Schema. The user decides.
+- [x] Add the rest of the dependencies; the user confirms the list again. Runtime: uvicorn, pydantic, pydantic-settings, keyring, structlog, opentelemetry-api, opentelemetry-sdk, langgraph. Dev group: ruff, mypy, coverage, import-linter, httpx (only for `TestClient`, decision 2026-11-09). No pytest-cov (decision 2026-11-09). No langgraph-checkpoint-sqlite yet: checkpoints arrive in slice 2 ([docs/10](../10-plan-y-pendientes.md)).
+- [x] Package layout, layer first (decision 2026-11-09), in `backend/src/ivlia/`:
   - `domain/` with `agents`, `memory`, `knowledge`, `models`, `tools`, `data_policy`.
   - `application/` with `orchestration`, `maintenance` and the use cases.
   - `contract/`: the Pydantic event models.
   - `config/`: settings and secret lookup.
   - `adapters/`, `api/`, `cli/` (filled in step 3).
   - `bootstrap.py`: the composition root, the only module that imports adapters.
-- [ ] Domain: data levels 0-3 as a type ([docs/06](../06-datos-y-seguridad.md)); minimal agent state; only the LLM port, as a typed protocol (decision 2026-11-09). Every other port of the closed list is created in the slice that uses it.
-- [ ] Contract test base class (decision 2026-11-09): each port has a base test class; each adapter's test subclasses it.
-- [ ] Hello-world adapter behind the LLM port, with its contract test (decision 2026-11-09).
-- [ ] Contract: Pydantic event models as a discriminated union on `type`, with only `token`, `end` and `error` (decision 2026-11-09); each slice adds its own. `just contract` exports the JSON Schema to `backend/schemas/events.schema.json` and the OpenAPI document to `backend/schemas/openapi.json`, both outside `src/` and versioned (decision 2026-11-09). Both are generated: add `backend/schemas/` to `.prettierignore` (rule 9; assumed). A test in `just check` (and so in CI) fails if either export differs from its versioned file.
-- [ ] Orchestration: a minimal LangGraph graph in `application/orchestration` with one node that calls the LLM port. The application translates domain state to LangGraph state ([docs/02](../02-arquitectura-e-interfaces.md), "Orquestación"). No checkpointer yet.
-- [ ] Use case: the chat use case emits contract events (token, end; error on failure). The endpoint only serializes them.
-- [ ] Configuration in `ivlia.config` ([docs/07](../07-transversales.md), "Configuración"): defaults in code; user TOML via `TomlConfigSettingsSource`; environment variables. Validate everything at start; on error, do not start and say what fails. Installation identity (decision 2026-11-09):
+- [x] Domain: data levels 0-3 as a type ([docs/06](../06-datos-y-seguridad.md)); minimal agent state; only the LLM port, as a typed protocol (decision 2026-11-09). Every other port of the closed list is created in the slice that uses it.
+- [x] Contract test base class (decision 2026-11-09): each port has a base test class; each adapter's test subclasses it.
+- [x] Hello-world adapter behind the LLM port, with its contract test (decision 2026-11-09).
+- [x] Contract: Pydantic event models as a discriminated union on `type`, with only `token`, `end` and `error` (decision 2026-11-09); each slice adds its own. `just contract` exports the JSON Schema to `backend/schemas/events.schema.json` and the OpenAPI document to `backend/schemas/openapi.json`, both outside `src/` and versioned (decision 2026-11-09). Both are generated: add `backend/schemas/` to `.prettierignore` (rule 9; assumed). A test in `just check` (and so in CI) fails if either export differs from its versioned file.
+- [x] Orchestration: a minimal LangGraph graph in `application/orchestration` with one node that calls the LLM port. The application translates domain state to LangGraph state ([docs/02](../02-arquitectura-e-interfaces.md), "Orquestación"). No checkpointer yet.
+- [x] Use case: the chat use case emits contract events (token, end; error on failure). The endpoint only serializes them.
+- [x] Configuration in `ivlia.config` ([docs/07](../07-transversales.md), "Configuración"): defaults in code; user TOML via `TomlConfigSettingsSource`; environment variables. Validate everything at start; on error, do not start and say what fails. Installation identity (decision 2026-11-09):
   - `IVLIA_HOME` is the installation root; default `~/Library/Application Support/ivlia`.
   - `IVLIA_ENV=dev` marks the dev installation; in the repo, `IVLIA_HOME` is `.dev/` (gitignored).
   - `just` always sets both; mise also sets them on entering the repo (`[env]` in `mise.toml`, with `IVLIA_HOME = "{{config_root}}/.dev"` so it is absolute from any subfolder).
   - Start guard (decision 2026-11-09): ivlia detects a run from the repo through PEP 610. If its `direct_url.json` has `dir_info` (installed from a local folder, editable included) and `IVLIA_HOME` is not set, ivlia does not start and says why. A release install (`archive_info`) starts. Tests with fake distribution metadata (assumed).
-- [ ] Secrets in `ivlia.config`: order env, then keyring, then a file in `IVLIA_HOME` with mode `0600`; if keyring fails, fall back to the file (decision 2026-11-09). The keyring service name is configurable, default `ivlia` (decision 2026-11-09). The dev installation never uses keyring. The API token is generated at first start and stored this way; the env-first lookup reads it from `IVLIA_API_TOKEN` (assumed).
-- [ ] API (decision 2026-11-09): FastAPI app factory; routes under `/api` so the SPA can own the rest (assumed); `GET /api/health` (assumed) and `POST /api/chat` with body `{"message": "..."}`, which answers with SSE. Binds to `127.0.0.1` only. Port configurable, default 8765 in use and 8766 in dev. The token goes in `Authorization: Bearer <token>` and is compared with `secrets.compare_digest`. Host and Origin checks ([docs/02](../02-arquitectura-e-interfaces.md), "API"):
+- [x] Secrets in `ivlia.config`: order env, then keyring, then a file in `IVLIA_HOME` with mode `0600`; if keyring fails, fall back to the file (decision 2026-11-09). The keyring service name is configurable, default `ivlia` (decision 2026-11-09). The dev installation never uses keyring. The API token is generated at first start and stored this way; the env-first lookup reads it from `IVLIA_API_TOKEN` (assumed).
+- [x] API (decision 2026-11-09): FastAPI app factory; routes under `/api` so the SPA can own the rest (assumed); `GET /api/health` (assumed) and `POST /api/chat` with body `{"message": "..."}`, which answers with SSE. Binds to `127.0.0.1` only. Port configurable, default 8765 in use and 8766 in dev. The token goes in `Authorization: Bearer <token>` and is compared with `secrets.compare_digest`. Host and Origin checks ([docs/02](../02-arquitectura-e-interfaces.md), "API"):
   - allowed `Host`: `127.0.0.1:<port>` and `localhost:<port>`;
   - allowed `Origin`: the same two, plus the Vite dev origin only in the dev installation. The dev origin is a setting, default `http://localhost:5173` (assumed), used by the allowlist and its tests. A request without `Origin` (the CLI) is not rejected for it (assumed);
   - missing or wrong token or session: 401; foreign `Host` or `Origin`: 403.
-- [ ] `/openapi.json` is served in both installations; `/docs` (Swagger UI, loaded from a CDN) only in the dev installation (decision 2026-11-09).
-- [ ] Web session ([docs/02](../02-arquitectura-e-interfaces.md), "API"; here because `ivlia web` in step 3 needs it, assumed; values decision 2026-11-09): an endpoint authenticated by token mints a one-time link (256 random bits, valid 60 s, single use); another exchanges it for the session cookie `ivlia_session` (`HttpOnly`, `SameSite=Strict`, `Path=/`, plus `Secure` per Validar) and redirects to the SPA root. The session lives 7 days, kept in server memory, so a restart ends it. One auth dependency accepts the token header or the cookie. Tests, with a fake clock (assumed):
+- [x] `/openapi.json` is served in both installations; `/docs` (Swagger UI, loaded from a CDN) only in the dev installation (decision 2026-11-09).
+- [x] Web session ([docs/02](../02-arquitectura-e-interfaces.md), "API"; here because `ivlia web` in step 3 needs it, assumed; values decision 2026-11-09): an endpoint authenticated by token mints a one-time link (256 random bits, valid 60 s, single use); another exchanges it for the session cookie `ivlia_session` (`HttpOnly`, `SameSite=Strict`, `Path=/`, plus `Secure` per Validar) and redirects to the SPA root. The session lives 7 days, kept in server memory, so a restart ends it. One auth dependency accepts the token header or the cookie. Tests, with a fake clock (assumed):
   - 401: missing token, wrong token, missing or unknown cookie, session older than 7 days;
   - 403: wrong `Host`, wrong `Origin`, the Vite origin in the use installation;
   - the Vite origin is accepted in the dev installation;
   - link reuse fails; link used after 60 s fails; a valid cookie works;
   - the default port is 8765 in use and 8766 in dev.
-- [ ] Migrations (decision 2026-11-09): own runner; numbered SQL files per database; `PRAGMA user_version`; one transaction per migration; forward only. Phase 0 has only the memory database, with `0001` creating an `installation` table (id, creation date, version that created it). No knowledge database, no reindex and no checkpoints in Phase 0. Guard, since backup arrives in slice 2: pending migrations on an existing database, with no backup available, mean ivlia does not start and says why. Tests: empty database, already migrated, failing migration rolls back and startup fails with a clear message, existing database plus a fake `0002` refuses to start.
-- [ ] Logs (decision 2026-11-09): structlog, JSON to a file in `IVLIA_HOME`, with `trace_id` and `span_id` from the current span, and a processor that removes message content unless the explicit local debug mode is on. Level 3 data is never logged ([docs/07](../07-transversales.md), "Observabilidad"). Test that content does not reach the log file.
-- [ ] Traces (decision 2026-11-09): OpenTelemetry `TracerProvider` that always exports to a rotating JSON Lines file in `IVLIA_HOME` (rotation through `logging`); console export optional by configuration; no external exporter. One span per request and per use case.
-- [ ] `ivlia-server` entry point (decision 2026-11-09): `[project.scripts] ivlia-server = ...` runs uvicorn on the app built by `bootstrap.py`. launchd will use it later.
-- [ ] Quality config in `backend/pyproject.toml`:
+- [x] Migrations (decision 2026-11-09): own runner; numbered SQL files per database; `PRAGMA user_version`; one transaction per migration; forward only. Phase 0 has only the memory database, with `0001` creating an `installation` table (id, creation date, version that created it). No knowledge database, no reindex and no checkpoints in Phase 0. Guard, since backup arrives in slice 2: pending migrations on an existing database, with no backup available, mean ivlia does not start and says why. Tests: empty database, already migrated, failing migration rolls back and startup fails with a clear message, existing database plus a fake `0002` refuses to start.
+- [x] Logs (decision 2026-11-09): structlog, JSON to a file in `IVLIA_HOME`, with `trace_id` and `span_id` from the current span, and a processor that removes message content unless the explicit local debug mode is on. Level 3 data is never logged ([docs/07](../07-transversales.md), "Observabilidad"). Test that content does not reach the log file.
+- [x] Traces (decision 2026-11-09): OpenTelemetry `TracerProvider` that always exports to a rotating JSON Lines file in `IVLIA_HOME` (rotation through `logging`); console export optional by configuration; no external exporter. One span per request and per use case.
+- [x] `ivlia-server` entry point (decision 2026-11-09): `[project.scripts] ivlia-server = ...` runs uvicorn on the app built by `bootstrap.py`. launchd will use it later.
+- [x] Quality config in `backend/pyproject.toml`:
   - ruff format and lint with the curated families confirmed in Validar (decision 2026-11-09).
   - mypy strict with `plugins = ["pydantic.mypy"]`. Type exceptions only in adapters and `application/orchestration`, as narrow as possible, each with a comment ([docs/08](../08-ingenieria-y-calidad.md), "Tipado").
-  - import-linter with `include_external_packages = true` (decision 2026-11-09): layers `api | cli | adapters` → `application` → `contract` → `domain`; domain imports no framework; `config` imports no `api`, `adapters` or `application`; only `bootstrap` imports `adapters`; `langgraph` only in `application/orchestration`; `ivlia.cli` imports only `contract`, `config` and `application/maintenance` (decision 2026-11-09; enforced from step 3).
+  - import-linter with `include_external_packages = true` (decision 2026-11-09): layers `api | cli | adapters` → `application` → `contract` → `domain`; domain imports no framework; `config` imports no `api`, `adapters` or `application`; only `bootstrap` imports `adapters`; `langgraph` and `langsmith` only in `application/orchestration` (`langsmith`: decision 2026-11-10); `ivlia.cli` imports only `contract`, `config` and `application/maintenance` (decision 2026-11-09; enforced from step 3).
   - pytest config; coverage.py: one run, two reports: domain `--fail-under=100`, the rest `--fail-under=95` (decision 2026-11-09).
-- [ ] `justfile`: add `uv sync --locked` in `backend/` to `setup`. Add the backend checks to `check` (ruff, mypy, `lint-imports`, tests with coverage, contract export check), all through `uv run --locked`, so neither `just check` nor CI ever rewrites `uv.lock`. Add `just dev`: `ivlia-server` with reload (decision 2026-11-09).
-- [ ] `.pre-commit-config.yaml`: add ruff-check and ruff-format as `repo: local` hooks that run `uv run --locked ruff` in `backend/` (decision 2026-11-09; placed in this step, assumed).
-- [ ] PostToolUse hook ([docs/09](../09-ia-en-el-desarrollo.md), "Las herramientas de calidad guían a la IA"): a stdlib Python script in `.claude/hooks/` registered in `.claude/settings.json` for file edits. For `backend/**/*.py` it runs `ruff format` and `ruff check --fix` on that file and returns remaining errors to Claude. A test for it runs in `just check`.
-- [ ] `.claude/rules/backend.md` with `paths: backend/**`: only links to the standards document ([docs/09](../09-ia-en-el-desarrollo.md), "Instrucciones para la IA").
-- [ ] ADR `docs/decisions/adr/0001-langgraph-orchestration.md` (name assumed), MADR minimal (decision 2026-11-09): LangGraph as the orchestration framework, in the application layer, with no adapter copying its API ([docs/02](../02-arquitectura-e-interfaces.md), "Orquestación"). ADRs are immutable; a later one marks the old one "superseded by".
-- [ ] Decision map `docs/decisions/README.md` (decision 2026-11-09): columns decision, status (Final or Provisional), revisit when, link. Start it with the decisions of Phase 0 so far (for example: mypy vs ty, OpenAPI 3.2 vs fallback, httpx2, prek at 1.0, mise lockfile, Zod postponed).
-- [ ] Update the standards document and `AGENTS.md` "Current state".
+- [x] `justfile`: add `uv sync --locked` in `backend/` to `setup`. Add the backend checks to `check` (ruff, mypy, `lint-imports`, tests with coverage, contract export check), all through `uv run --locked`, so neither `just check` nor CI ever rewrites `uv.lock`. Add `just dev`: `ivlia-server` with reload (decision 2026-11-09).
+- [x] `.pre-commit-config.yaml`: add ruff-check and ruff-format as `repo: local` hooks that run `uv run --locked ruff` in `backend/` (decision 2026-11-09; placed in this step, assumed).
+- [x] PostToolUse hook ([docs/09](../09-ia-en-el-desarrollo.md), "Las herramientas de calidad guían a la IA"): a stdlib Python script in `.claude/hooks/` registered in `.claude/settings.json` for file edits. For `backend/**/*.py` it runs `ruff format` and `ruff check --fix` on that file and returns remaining errors to Claude. A test for it runs in `just check`.
+- [x] `.claude/rules/backend.md` with `paths: backend/**`: only links to the standards document ([docs/09](../09-ia-en-el-desarrollo.md), "Instrucciones para la IA").
+- [x] ADR `docs/decisions/adr/0001-langgraph-orchestration.md` (name assumed), MADR minimal (decision 2026-11-09): LangGraph as the orchestration framework, in the application layer, with no adapter copying its API ([docs/02](../02-arquitectura-e-interfaces.md), "Orquestación"). ADRs are immutable; a later one marks the old one "superseded by".
+- [x] Decision map `docs/decisions/README.md` (decision 2026-11-09): columns decision, status (Final or Provisional), revisit when, link. Start it with the decisions of Phase 0 so far (for example: mypy vs ty, OpenAPI 3.2 vs fallback, httpx2, prek at 1.0, mise lockfile, Zod postponed).
+- [x] Update the standards document and `AGENTS.md` "Current state".
 
 ### 2.4 User-only actions
 
-- [ ] User only: confirm the spike's dependencies before `uv add`, and then the rest of the list.
-- [ ] User only: confirm the ruff family list.
-- [ ] User only: decide keep or fallback after the OpenAPI 3.2 spike.
+- [x] User only: confirm the spike's dependencies before `uv add` (done), and then the rest of the list.
+- [x] User only: confirm the ruff family list.
+- [x] User only: decide keep or fallback after the OpenAPI 3.2 spike: keep OpenAPI 3.2 (decision 2026-11-10). FastAPI puts the typed union in `itemSchema` by itself; a test checks that the union's `$ref`s resolve, because openapi-spec-validator does not follow them inside `contentSchema`.
 - [ ] User only: approve the push and merge the PR.
 
 ### 2.5 Done criteria
