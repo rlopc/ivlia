@@ -153,3 +153,14 @@ def test_failed_write_leaves_no_partial_file(
         api_token(store)
 
     assert list(tmp_path.iterdir()) == []
+
+
+def test_secrets_file_that_is_not_json_is_rejected(tmp_path: Path) -> None:
+    secrets_file = _secrets_file(tmp_path)
+    secrets_file.write_text("api_token = not-json")
+    secrets_file.chmod(0o600)
+
+    with pytest.raises(ConfigError, match="is not valid JSON") as error:
+        SecretStore(tmp_path, SERVICE, None, environ={}).get(API_TOKEN)
+
+    assert "not-json" not in str(error.value)

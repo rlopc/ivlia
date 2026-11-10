@@ -96,7 +96,12 @@ class SecretStore:
                 f"Run `chmod 600 '{self._file}'`."
             )
             raise ConfigError(msg)
-        data = json.loads(self._file.read_text(encoding="utf-8"))
+        try:
+            data = json.loads(self._file.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            # The position only: the decoder message never quotes the content.
+            msg = f"{self._file} is not valid JSON: {error}"
+            raise ConfigError(msg) from None
         if not isinstance(data, dict) or not all(
             isinstance(k, str) and isinstance(v, str) for k, v in data.items()
         ):

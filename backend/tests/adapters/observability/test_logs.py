@@ -77,3 +77,21 @@ def test_records_carry_the_current_trace(log_file: Path) -> None:
     [line] = _lines(log_file)
     assert line["trace_id"] == trace.format_trace_id(context.trace_id)
     assert line["span_id"] == trace.format_span_id(context.span_id)
+
+
+def test_exception_groups_and_notes_are_scrubbed(log_file: Path) -> None:
+    inner = ValueError(SECRET_WORDS)
+    inner.add_note(f"while reading {SECRET_WORDS}")
+    try:
+        msg = "reply failed"
+        raise ExceptionGroup(msg, [inner])  # noqa: TRY301
+    except ExceptionGroup:
+        logger.exception("reply failed")
+
+    assert SECRET_WORDS not in log_file.read_text()
+    [line] = _lines(log_file)
+    [group] = line["exception"]
+    assert group["is_group"] is True
+    [[member]] = group["exceptions"]
+    assert member["exc_type"] == "ValueError"
+    assert member["exc_value"] == REMOVED

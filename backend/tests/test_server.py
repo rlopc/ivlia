@@ -52,8 +52,10 @@ def test_serves_only_on_localhost_without_access_log(
 
 
 def test_reload_uses_the_factory_in_dev(
-    monkeypatch: pytest.MonkeyPatch, runs: list[dict[str, Any]]
+    monkeypatch: pytest.MonkeyPatch, runs: list[dict[str, Any]], tmp_path: Path
 ) -> None:
+    monkeypatch.setenv("IVLIA_ENV", "dev")
+    monkeypatch.setenv("IVLIA_HOME", str(tmp_path))
     _build(monkeypatch, Environment.DEV)
 
     assert server.main(["--reload"]) == 0
@@ -64,15 +66,19 @@ def test_reload_uses_the_factory_in_dev(
     assert run["port"] == 8766
 
 
-def test_reload_is_refused_outside_dev(
+def test_reload_is_refused_outside_dev_before_building(
     monkeypatch: pytest.MonkeyPatch,
     runs: list[dict[str, Any]],
     capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
 ) -> None:
-    _build(monkeypatch, Environment.USE)
+    monkeypatch.setenv("IVLIA_HOME", str(tmp_path))
+    built: list[bool] = []
+    monkeypatch.setattr(server, "build_server", lambda: built.append(True))
 
     assert server.main(["--reload"]) == 2
     assert runs == []
+    assert built == []
     assert "only for the dev installation" in capsys.readouterr().err
 
 

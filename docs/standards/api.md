@@ -73,5 +73,5 @@ The chat endpoint only serializes the events of the `Chat` use case: `token` eve
 
 ## Tracing
 
-- `RequestSpan` (`api/tracing.py`) opens one span per request, response body included, with the method, the path and the status code. It never records the query string, which can hold a link code.
+- `RequestSpan` (`api/tracing.py`) opens one span per request, response body included, with the method, the path and the status code. It never records the query string, which can hold a link code. On an unhandled exception it records only the exception type.
 - FastAPI's built-in telemetry is off (`telemetry=` in `create_app`). Its spans record the query string with only a few cloud signature parameters redacted, and `FASTAPI_OTEL_AUTO_CONFIGURE=true` would add exporters. A test checks that it stays off with that variable set.

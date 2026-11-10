@@ -13,8 +13,9 @@ _tracer = trace.get_tracer(__name__)
 class RequestSpan:
     """Wraps each request, response body included, in a span.
 
-    Only the method, the path and the status go into it: never the query
-    string, which can hold a one-time link code.
+    Only the method, the path, the status and, on failure, the exception
+    type go into it: never the query string, which can hold a one-time link
+    code, nor the exception message, which can quote the conversation.
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -27,7 +28,10 @@ class RequestSpan:
         method, path = scope["method"], scope["path"]
         attributes = {"http.request.method": method, "url.path": path}
         with _tracer.start_as_current_span(
-            f"{method} {path}", attributes=attributes
+            f"{method} {path}",
+            attributes=attributes,
+            record_exception=False,
+            set_status_on_exception=False,
         ) as span:
 
             async def send_with_status(message: Message) -> None:
@@ -35,4 +39,8 @@ class RequestSpan:
                     span.set_attribute("http.response.status_code", message["status"])
                 await send(message)
 
-            await self._app(scope, receive, send_with_status)
+            try:
+                await self._app(scope, receive, send_with_status)
+            except Exception as error:
+                span.set_status(trace.StatusCode.ERROR, type(error).__name__)
+                raise

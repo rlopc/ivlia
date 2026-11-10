@@ -2,10 +2,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 from api_client import AUTH, make_client
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+from ivlia.api.tracing import RequestSpan
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -65,3 +69,27 @@ def test_fastapi_native_telemetry_stays_off(
         for span in exporter.get_finished_spans()
     }
     assert scopes == {"ivlia.api.tracing"}
+
+
+def test_unhandled_exception_keeps_only_its_type(
+    exporter: InMemorySpanExporter,
+) -> None:
+    app = FastAPI()
+    app.add_middleware(RequestSpan)
+
+    @app.get("/boom")
+    async def boom() -> None:
+        msg = "my private note"
+        raise RuntimeError(msg)
+
+    TestClient(app, raise_server_exceptions=False).get("/boom")
+
+    [span] = [
+        span
+        for span in exporter.get_finished_spans()
+        if span.instrumentation_scope
+        and span.instrumentation_scope.name == "ivlia.api.tracing"
+    ]
+    assert span.status.description == "RuntimeError"
+    assert span.events == ()
+    assert "my private note" not in span.to_json()

@@ -49,3 +49,10 @@ def test_unknown_toml_key_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(ConfigError, match="- prot: Extra inputs are not permitted"):
         load_config(_installation(tmp_path))
+
+
+def test_malformed_toml_says_where(tmp_path: Path) -> None:
+    (tmp_path / "config.toml").write_text("port = \n")
+
+    with pytest.raises(ConfigError, match=r"config\.toml is not valid TOML: .*line 1"):
+        load_config(_installation(tmp_path))

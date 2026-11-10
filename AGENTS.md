@@ -9,7 +9,7 @@
 
 ## Current state
 
-- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Step 1 (repository and `just`) is done; step 2 (backend) is in review; next step: CLI.
+- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Step 1 (repository and `just`) is done; step 2 (backend) is in progress, with its PR in review; next step: CLI.
 - The backend is the Python package in `backend/`: [backend](docs/standards/backend.md), [API](docs/standards/api.md). Decisions: [decision map](docs/decisions/README.md).
 - Manual runs of `ivlia-server` always use the dev installation (`IVLIA_ENV=dev`): the use installation stores its token in the real keychain.
 - Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`.

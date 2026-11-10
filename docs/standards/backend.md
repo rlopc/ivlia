@@ -131,11 +131,12 @@ Design: [docs/07](../07-transversales.md) ("Observabilidad"). Nothing leaves the
 - Code logs through the standard `logging` module. structlog only formats records (`adapters/observability/logs.py`): JSON lines in `IVLIA_HOME/logs/ivlia.log`, rotating at 10 MB with 5 backups, with `trace_id` and `span_id` from the current span.
 - Content never reaches the log unless `log_content` is on:
   - The extra fields `content`, `text`, `prompt`, `reply` and `messages` are replaced by `[removed]`.
-  - So is the message of logged exceptions, which can quote the conversation.
+  - So is what logged exceptions say (message, notes, syntax error line), also inside exception groups, because it can quote the conversation.
   - Frame locals are never logged, even in debug mode.
+- With `log_content` on, everything is logged, level 3 data included. Phase 0 has no level 3 data; masking secrets in logs arrives with the secret detector in slice 2 ([docs/10](../10-plan-y-pendientes.md)).
 - Log messages are fixed text. Content goes only in the extra fields above, never interpolated into the message.
 - Traces: an OpenTelemetry `TracerProvider` (`adapters/observability/traces.py`) that always exports to `IVLIA_HOME/logs/traces.jsonl` (one span per line, rotating through `logging`), and also to the console if `trace_console` is on.
-- Spans: one per HTTP request (`api/tracing.py`, without the query string) and one per use case (`chat`). Spans record the exception type, never its message.
+- Spans: one per HTTP request (`api/tracing.py`, without the query string) and one per use case (`chat`). Spans record the exception type, never its message: the SDK's `record_exception` and `set_status_on_exception` are off, and the status is set by hand.
 
 ## Third-party telemetry
 
@@ -148,5 +149,6 @@ Both are switched off in code and covered by tests, because an environment varia
 
 - `ivlia-server` (`[project.scripts]`, `ivlia/server.py`) builds the app with `bootstrap` and runs uvicorn on `127.0.0.1` only, on the configured port.
 - uvicorn's logs go to ivlia's JSON log (`log_config=None`), and its access log is off, because request lines carry query strings and so one-time link codes.
-- `--reload` restarts on code changes through `ivlia.bootstrap:app_factory`, and only in the dev installation. `just dev` runs it.
-- A start error (`StartupError`: invalid configuration or a migration problem) prints its message and exits with status 1.
+- `--reload` restarts on code changes through `ivlia.bootstrap:app_factory`, and only in the dev installation; it is refused before anything is built. `just dev` runs it.
+- Known limitation of reload mode: the supervising process and the server process both open the log and trace files, and `RotatingFileHandler` is not safe across processes, so a rotation can lose lines. It affects only the dev installation.
+- A start error (`StartupError`: invalid or malformed configuration or secrets file, or a migration problem) prints its message and exits with status 1.

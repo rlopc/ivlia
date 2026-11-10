@@ -8,7 +8,7 @@ import uvicorn
 
 from ivlia.bootstrap import build_server
 from ivlia.config.errors import StartupError
-from ivlia.config.installation import Environment
+from ivlia.config.installation import Environment, resolve_installation
 
 HOST = "127.0.0.1"
 """Only this Mac: opening the API to the network would need real authentication."""
@@ -23,14 +23,17 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
+        # Checked before building anything, which would create the token.
+        if args.reload and resolve_installation().env is not Environment.DEV:
+            sys.stderr.write(
+                "ivlia-server: --reload is only for the dev installation.\n"
+            )
+            return 2
         server = build_server()
     except StartupError as error:
         sys.stderr.write(f"ivlia-server: {error}\n")
         return 1
     config = server.config
-    if args.reload and config.installation.env is not Environment.DEV:
-        sys.stderr.write("ivlia-server: --reload is only for the dev installation.\n")
-        return 2
     sys.stderr.write(
         f"ivlia-server: listening on http://{HOST}:{config.port} "
         f"(log: {server.log_file})\n"

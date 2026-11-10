@@ -21,4 +21,4 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | An existing database with pending migrations does not start | Provisional | Slice 2, when backups arrive | [backend.md](../standards/backend.md#migrations) |
 | pre-commit, not prek | Provisional | When prek reaches 1.0 | [repository.md](../standards/repository.md#pre-commit) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |
-| No Zod for the contract: generated TypeScript types and an Ajv validator | Provisional | — | [docs/plan/phase-0.md](../plan/phase-0.md) (step 4) |
+| No Zod for the contract: generated TypeScript types and an Ajv validator | Provisional | When the first form arrives | [docs/plan/phase-0.md](../plan/phase-0.md) (step 4) |

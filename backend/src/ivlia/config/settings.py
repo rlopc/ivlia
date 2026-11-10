@@ -1,5 +1,6 @@
 """User settings: defaults in code, then the TOML file, then the environment."""
 
+import tomllib
 from dataclasses import dataclass
 
 from pydantic import ValidationError
@@ -63,6 +64,9 @@ def load_config(installation: Installation) -> Config:
 
     try:
         settings: Settings = _InstallationSettings()
+    except tomllib.TOMLDecodeError as error:
+        msg = f"{toml_file} is not valid TOML: {error}"
+        raise ConfigError(msg) from None
     except ValidationError as error:
         raise ConfigError(_describe(error, toml_file.as_posix())) from None
     return Config(installation=installation, settings=settings)

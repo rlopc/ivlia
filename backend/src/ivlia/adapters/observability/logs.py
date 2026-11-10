@@ -43,14 +43,28 @@ def drop_color_message(
     return event
 
 
+def _scrub_stacks(stacks: list[dict[str, Any]]) -> None:
+    """Remove what an exception says, keeping its type and frames.
+
+    Messages, notes and syntax error lines can quote content. Exception
+    groups nest one list of stacks per member under `exceptions`.
+    """
+    for stack in stacks:
+        if "exc_value" in stack:
+            stack["exc_value"] = REMOVED
+        if stack.get("exc_notes"):
+            stack["exc_notes"] = [REMOVED]
+        if stack.get("syntax_error"):
+            stack["syntax_error"] = REMOVED
+        for member in stack.get("exceptions", []):
+            _scrub_stacks(member)
+
+
 def remove_content(_logger: WrappedLogger, _method: str, event: EventDict) -> EventDict:
-    """Drop content fields and exception messages, which may quote content."""
+    """Drop content fields and what logged exceptions say."""
     for key in CONTENT_KEYS & event.keys():
         event[key] = REMOVED
-    exceptions: list[dict[str, Any]] = event.get("exception", [])
-    for exception in exceptions:
-        if "exc_value" in exception:
-            exception["exc_value"] = REMOVED
+    _scrub_stacks(event.get("exception", []))
     return event
 
 
