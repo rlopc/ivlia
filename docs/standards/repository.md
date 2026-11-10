@@ -2,8 +2,8 @@
 
 ## Tool versions
 
-- [mise.toml](../../mise.toml) pins node, uv, just, lychee, gitleaks, actionlint and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
-- pnpm is pinned only in `packageManager` of [package.json](../../package.json); mise reads it through `idiomatic_version_file_enable_tools`. Corepack is not used.
+- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
+- pnpm is pinned only in `mise.toml`, not in `packageManager` of `package.json`: with `packageManager`, pnpm 12 writes `pnpm-lock.yaml` as two YAML documents, which GitHub's dependency graph does not read, so Dependabot would raise no security alerts for JavaScript. Corepack is not used.
 - Python is not in mise: uv reads [backend/.python-version](../../backend/.python-version). Python dependencies: [backend.md](backend.md#project).
 - pre-commit is installed by mise's pipx backend, which uses uv. `mise.lock` stores only its version, without checksum.
 - The root pnpm workspace ([pnpm-workspace.yaml](../../pnpm-workspace.yaml)) holds Prettier, markdownlint-cli2 and OpenSpec as exact dev dependencies, with a single `pnpm-lock.yaml`. `frontend/` joins it in step 4.

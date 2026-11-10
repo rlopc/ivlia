@@ -369,12 +369,13 @@ Create the SPA in `frontend/` with one chat page that streams the hello-world an
 - [ ] `justfile`: add the frontend checks to `check` (Prettier, ESLint, knip, `tsc`, contract generation check, Vitest with coverage, build, Playwright). Add `just dev-web`: `ivlia-server` and Vite together for development (name assumed).
 - [ ] PostToolUse hook: extend it for `frontend/**` (Prettier and ESLint with `--fix` on the edited file), with tests.
 - [ ] `.claude/rules/frontend.md` with `paths: frontend/**`: only links to the standards document.
-- [ ] Record the outcome of the Dependabot and `pnpm-lock.yaml` risk in the decision map.
+- [x] Record the outcome of the Dependabot and `pnpm-lock.yaml` risk in the decision map. Outcome (user decision 2026-11-10): pnpm is pinned in `mise.toml` instead of `packageManager`, so the lockfile is one YAML document; `pnpm audit` runs in CI as a second layer (step 5).
 - [ ] Update the standards document and `AGENTS.md` "Current state".
 
 ### 4.4 User-only actions
 
 - [ ] User only: confirm the Vite scaffold, the spike's dependencies, and then the rest of the list (including `shadcn init`).
+- [ ] User only: after the merge, check that Insights > Dependency graph lists the JavaScript dependencies (decision 2026-11-10).
 - [ ] User only: approve the push and merge the PR.
 
 ### 4.5 Done criteria
@@ -424,6 +425,7 @@ Run `just check` in GitHub Actions on every PR and on `main`, plus the CI-only c
 - [ ] `.github/workflows/links.yml`: weekly and manual; lychee-action on all Markdown with network; on failure, open an issue or update the open one (with `gh`, assumed) (decision 2026-11-09). Internal links and anchors keep blocking in `just check`.
 - [ ] `.github/dependabot.yml`: `uv` (directory `/backend`), `npm` (root workspace), `github-actions` (`/`); `cooldown: default-days: 7`; no wildcard groups (decision 2026-11-09); commit message `build(deps)` per Validar (decision 2026-11-09). Also `pre-commit` and mise if Validar found them supported (decision 2026-11-09).
 - [ ] For each of pre-commit and mise that Dependabot does not support (decision 2026-11-09): `just update-tools` and `.github/workflows/tool-updates.yml` (name assumed), monthly, which opens an issue or updates the open one.
+- [ ] `pnpm audit` in `ci.yml` (decision 2026-11-10): a second layer next to Dependabot alerts for JavaScript.
 - [ ] `just check` passes zizmor and actionlint on the new workflows.
 - [ ] Update the standards document and `AGENTS.md` "Current state".
 

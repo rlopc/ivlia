@@ -2,7 +2,6 @@
   "name": "ivlia-workspace",
   "private": true,
   "license": "AGPL-3.0-or-later",
-  "packageManager": "pnpm@12.17.0",
   "devDependencies": {
     "@fission-ai/openspec": "1.16.0",
     "markdownlint-cli2": "0.24.0",

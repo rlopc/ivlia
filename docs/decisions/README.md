@@ -23,4 +23,5 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | An existing database with pending migrations does not start | Provisional | Slice 2, when backups arrive | [backend.md](../standards/backend.md#migrations) |
 | pre-commit, not prek | Provisional | When prek reaches 1.0 | [repository.md](../standards/repository.md#pre-commit) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |
+| pnpm pinned in `mise.toml`, not in `packageManager`, so `pnpm-lock.yaml` is one YAML document that the dependency graph reads | Provisional | When GitHub's dependency graph reads two-document pnpm lockfiles | [repository.md](../standards/repository.md#tool-versions) |
 | No Zod for the contract: generated TypeScript types and an Ajv validator | Provisional | When the first form arrives | [docs/plan/phase-0.md](../plan/phase-0.md) (step 4) |
