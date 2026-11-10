@@ -9,11 +9,11 @@
 
 ## Current state
 
-- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Steps 1 (repository and `just`) and 2 (backend) are done; step 3 (CLI) is in progress, with its PR in review; next step: frontend.
-- The backend is the Python package in `backend/`, CLI included: [backend](docs/standards/backend.md), [API](docs/standards/api.md). Decisions: [decision map](docs/decisions/README.md).
+- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Steps 1 (repository and `just`), 2 (backend) and 3 (CLI) are done; step 4 (frontend) is in progress, with its PR in review; next step: CI.
+- The backend is the Python package in `backend/`, CLI included: [backend](docs/standards/backend.md), [API](docs/standards/api.md). The SPA is in `frontend/`: [frontend](docs/standards/frontend.md). Decisions: [decision map](docs/decisions/README.md).
 - Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`.
 - How the project is built and checked: the standards document, `docs/standards/README.md`.
-- `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `reviewer` agent, the ruff hook after Python edits, the rules per zone (`.claude/rules/`) and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
+- `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `reviewer` agent, the lint hook after edits (ruff in `backend/`, Prettier and ESLint in `frontend/`), the rules per zone (`.claude/rules/`) and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
 
 ## How to work with the user
 
