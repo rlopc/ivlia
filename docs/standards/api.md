@@ -19,7 +19,7 @@ The HTTP API of `ivlia-server`, in `ivlia.api`. Design: [docs/02](../02-arquitec
 
 - Version 3.2.0 (`app.openapi_version`). The SSE response of `POST /api/chat` uses `itemSchema`; FastAPI fills its `data` with `contentMediaType: application/json` and the event union as `contentSchema`.
 - A test validates the document with openapi-spec-validator as 3.2. The validator does not follow `$ref` inside `contentSchema`, so another test checks that every target of the union's `discriminator.mapping` exists.
-- `/openapi.json` is served in every installation. Swagger UI (`/docs`, loaded from a CDN) only in the dev installation. ReDoc is off.
+- `/openapi.json` is served in every installation. Swagger UI (`/docs`, loaded from a CDN) only in the dev installation; it renders the 3.2 document, `POST /api/chat` included (checked 2026-11-10). ReDoc is off.
 
 ## Endpoints
 

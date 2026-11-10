@@ -35,7 +35,7 @@ Enabled in the same file (`sandbox`):
 ## Hooks
 
 - PreToolUse on Bash: `researcher-bash-guard.py` limits the read-only Bash of the `researcher` agent; its test (`.claude/hooks/researcher-bash-guard.test.sh`) runs in `just check`.
-- PostToolUse on `Edit` and `Write`: `ruff-after-edit.py` runs `ruff format` and `ruff check --fix` on each Python file under `backend/` that Claude edits, through `mise exec -- uv run --locked`. Errors that ruff cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/ruff-after-edit.test.sh`) runs in `just check`.
+- PostToolUse on `Edit` and `Write`: `ruff-after-edit.py` runs `ruff format` and `ruff check --fix` on each Python file under `backend/` that Claude edits, through `mise exec -- uv run --locked`. Errors that ruff cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/ruff-after-edit.test.sh`) runs in `just check`. Checked in a live session on 2026-11-10.
 - Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
 
 ## Validar
