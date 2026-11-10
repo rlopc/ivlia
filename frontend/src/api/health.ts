@@ -1,5 +1,7 @@
 import { ApiError, UNREACHABLE, describeStatus } from "./errors";
 
+const INVALID = "The API sent an invalid health status.";
+
 export interface Health {
   status: string;
 }
@@ -13,14 +15,19 @@ export async function fetchHealth(signal?: AbortSignal): Promise<Health> {
     throw new ApiError(UNREACHABLE);
   }
   if (!response.ok) throw new ApiError(describeStatus(response.status));
-  const body: unknown = await response.json();
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    throw new ApiError(INVALID);
+  }
   if (
     typeof body !== "object" ||
     body === null ||
     !("status" in body) ||
     typeof body.status !== "string"
   ) {
-    throw new ApiError("The API sent an invalid health status.");
+    throw new ApiError(INVALID);
   }
   return { status: body.status };
 }

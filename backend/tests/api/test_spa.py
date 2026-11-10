@@ -30,10 +30,16 @@ def test_spa_routes_get_the_index(spa: TestClient, path: str) -> None:
 
 
 def test_the_spa_page_forbids_other_origins(spa: TestClient) -> None:
-    policy = spa.get("/").headers["content-security-policy"]
+    headers = spa.get("/").headers
+    policy = headers["content-security-policy"]
     assert "default-src 'self'" in policy
     assert "connect-src 'self'" in policy
     assert "frame-ancestors 'none'" in policy
+    assert headers["x-content-type-options"] == "nosniff"
+
+
+def test_the_spa_page_is_revalidated(spa: TestClient) -> None:
+    assert spa.get("/").headers["cache-control"] == "no-cache"
 
 
 def test_spa_files_are_served(spa: TestClient) -> None:

@@ -22,6 +22,14 @@ CONTENT_SECURITY_POLICY = "; ".join(
     ]
 )
 
+PAGE_HEADERS = {
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+    # index.html names the hashed assets of its build: revalidate it, so an
+    # update never leaves a cached page pointing at assets that are gone.
+    "Cache-Control": "no-cache",
+    "X-Content-Type-Options": "nosniff",
+}
+
 
 def built_spa() -> Path | None:
     """The built SPA's folder, or None if it was not built."""
@@ -43,7 +51,4 @@ def mount_spa(app: FastAPI, static_dir: Path) -> None:
     async def spa(path: str) -> FileResponse:
         if path == "api" or path.startswith("api/"):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-        return FileResponse(
-            files.get(path, index),
-            headers={"Content-Security-Policy": CONTENT_SECURITY_POLICY},
-        )
+        return FileResponse(files.get(path, index), headers=PAGE_HEADERS)

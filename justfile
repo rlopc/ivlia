@@ -49,7 +49,6 @@ check-backend:
 [working-directory: 'frontend']
 check-frontend:
     pnpm run contract:check
-    pnpm exec tsc -b
     pnpm run lint
     pnpm run knip
     pnpm run test

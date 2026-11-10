@@ -21,6 +21,11 @@ describe("fetchHealth", () => {
     },
   );
 
+  it("rejects a body that is not JSON", async () => {
+    answer(() => new HttpResponse("not json", { status: 200 }));
+    await expect(fetchHealth()).rejects.toThrow("invalid health status");
+  });
+
   it("reports an error status", async () => {
     answer(() => new HttpResponse(null, { status: 500 }));
     await expect(fetchHealth()).rejects.toThrow("status 500");

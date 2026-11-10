@@ -17,7 +17,7 @@ Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"
 - `just setup`: `mise install`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked` for `backend/`, `pre-commit install` and `pre-commit install-hooks`. Uses the network; the only recipe that installs.
 - `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, the offline link check, `just check-backend` and `just check-frontend`.
 - `just check-backend`: mypy, import-linter, and the tests under coverage with its two reports ([backend.md](backend.md#tests-and-coverage)). All through `uv run --locked`. ruff runs in pre-commit.
-- `just check-frontend`: the contract check, `tsc -b`, ESLint, knip, Vitest with coverage, the build and Playwright ([frontend.md](frontend.md)). Prettier runs in pre-commit. Playwright starts a server and a browser, so it runs outside Claude Code's sandbox.
+- `just check-frontend`: the contract check, ESLint, knip, Vitest with coverage, the build (`tsc -b`, then `vite build`) and Playwright ([frontend.md](frontend.md)). Prettier runs in pre-commit. Playwright starts a server and a browser, so it runs outside Claude Code's sandbox.
 - `just contract`: exports the event contract and the OpenAPI document, and generates the frontend's types and validator ([api.md](api.md#export)).
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
@@ -49,9 +49,10 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 - Lockfiles: `pnpm-lock.yaml`, `mise.lock` and `backend/uv.lock`.
 - `backend/schemas/events.schema.json` and `backend/schemas/openapi.json`: regenerate with `just contract` ([api.md](api.md#export)).
+- `frontend/src/contract/`: regenerate with `just contract` ([api.md](api.md#frontend-types-and-validator)). Also excluded from ESLint, coverage and knip.
 - OpenSpec output: `.claude/skills/openspec-*/` and `.claude/commands/opsx/` (regenerate with `openspec update` after an upgrade). See [ai-development.md](ai-development.md#openspec).
 
-`pnpm-lock.yaml` has two YAML documents; Dependabot may not raise security alerts for it (to investigate in steps 4 and 5).
+`pnpm-lock.yaml` is one YAML document, which GitHub's dependency graph reads, because pnpm is not pinned in `packageManager` ([tool versions](#tool-versions)).
 
 ## Link checking
 
@@ -62,7 +63,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 - `README.md`, `SECURITY.md`, `CONTRIBUTING.md` and `LICENSE` at the root.
 - `.github/`: [pull request template](../../.github/pull_request_template.md) and issue forms (bug report, feature request) with blank issues disabled and a link to private security reporting.
 - No CODEOWNERS, Code of Conduct or DCO until contributions open.
-- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), `.mise/`, the scratch folders of the ruff hook test, and build and cache outputs.
+- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), `.mise/`, the backend scratch folders of the lint hook test, and build and cache outputs.
 
 ## License
 

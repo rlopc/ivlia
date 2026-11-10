@@ -61,6 +61,92 @@ describe("streamChat", () => {
     await expect(collect(streamChat("hi"))).rejects.toThrow(message);
   });
 
+  it("reports a connection that fails in the middle of the stream", async () => {
+    // MSW ends an errored body normally, so this test fakes fetch itself.
+    const encoder = new TextEncoder();
+    let sent = false;
+    const broken = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (sent) {
+          controller.error(new TypeError("network"));
+          return;
+        }
+        sent = true;
+        controller.enqueue(
+          encoder.encode('data: {"type":"token","text":"Hel"}\n\n'),
+        );
+      },
+    });
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(broken, {
+        headers: { "Content-Type": "text/event-stream" },
+      }),
+    );
+    const events: ApiEvent[] = [];
+    try {
+      await expect(
+        (async () => {
+          for await (const event of streamChat("hi")) events.push(event);
+        })(),
+      ).rejects.toThrow("connection to the ivlia server failed");
+    } finally {
+      fetch.mockRestore();
+    }
+    expect(events).toEqual([{ type: "token", text: "Hel" }]);
+  });
+
+  it("closes the response when the caller stops early", async () => {
+    let cancelled = false;
+    const encoder = new TextEncoder();
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(
+          encoder.encode('data: {"type":"token","text":"x"}\n\n'),
+        );
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    answer(
+      () =>
+        new HttpResponse(endless, {
+          headers: { "Content-Type": "text/event-stream" },
+        }),
+    );
+    for await (const event of streamChat("hi")) {
+      expect(event.type).toBe("token");
+      break;
+    }
+    await expect.poll(() => cancelled).toBe(true);
+  });
+
+  it("lets a cancellation in the middle of the stream through", async () => {
+    const encoder = new TextEncoder();
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(
+          encoder.encode('data: {"type":"token","text":"x"}\n\n'),
+        );
+      },
+    });
+    answer(
+      () =>
+        new HttpResponse(endless, {
+          headers: { "Content-Type": "text/event-stream" },
+        }),
+    );
+    const controller = new AbortController();
+    await expect(
+      (async () => {
+        for await (const event of streamChat("hi", controller.signal)) {
+          expect(event.type).toBe("token");
+          controller.abort();
+        }
+      })(),
+    ).rejects.toThrow(expect.objectContaining({ name: "AbortError" }) as Error);
+  });
+
   it("reports an unreachable server", async () => {
     answer(() => HttpResponse.error());
     await expect(collect(streamChat("hi"))).rejects.toThrow(ApiError);

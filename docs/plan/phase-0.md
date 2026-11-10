@@ -471,6 +471,7 @@ Automate one SemVer version for the whole repository and its CHANGELOG with rele
 - How `backend/uv.lock` follows the version bump that release-please makes in `backend/pyproject.toml` without hand-editing a generated file (rule 9). Possible outcomes: a job on the release PR runs `uv lock` and commits with the App token, or a dynamic version from the tag (needs hatchling). The user is told and decides.
 - The first version release-please computes from `0.0.0` with `feat` commits and `bump-minor-pre-major` (expected `0.1.0`).
 - `uv tool install` from a wheel file or URL; `gh attestation verify`.
+- Risk (found in step 4): the built SPA lives in `backend/src/ivlia/api/static/`, which is gitignored; check that the build backend still puts it in the wheel (many exclude git-ignored files) and how the release builds it first.
 
 ### 6.3 Tasks
 

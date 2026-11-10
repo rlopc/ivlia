@@ -100,7 +100,6 @@ export default defineConfig([
     "dist",
     "src/contract",
     "coverage",
-    ".vitest",
     "playwright-report",
     "test-results",
   ]),

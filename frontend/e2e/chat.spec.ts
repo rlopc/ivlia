@@ -12,11 +12,12 @@ test("a one-time link opens the chat, which streams the answer", async ({
   page.on("request", (r) => {
     if (new URL(r.url()).origin !== baseURL) foreign.push(r.url());
   });
-  const violations: string[] = [];
-  page.on("console", (message) => {
-    if (message.text().includes("Content Security Policy")) {
-      violations.push(message.text());
-    }
+  await page.addInitScript(() => {
+    const seen: string[] = [];
+    Object.assign(window, { cspViolations: seen });
+    document.addEventListener("securitypolicyviolation", (event) => {
+      seen.push(`${event.violatedDirective} ${event.blockedURI}`);
+    });
   });
 
   const response = await request.post("/api/session/link", {
@@ -34,5 +35,8 @@ test("a one-time link opens the chat, which streams the answer", async ({
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
   expect(foreign).toEqual([]);
+  const violations = await page.evaluate(
+    () => (window as unknown as { cspViolations: string[] }).cspViolations,
+  );
   expect(violations).toEqual([]);
 });

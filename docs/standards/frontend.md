@@ -5,10 +5,11 @@ The SPA in `frontend/`: React with TypeScript, built with Vite, served by FastAP
 ## Project
 
 - A package of the root pnpm workspace (`ivlia-frontend`, [frontend/package.json](../../frontend/package.json)), with the single root `pnpm-lock.yaml`. Dependencies are pinned to exact versions; adding or upgrading one needs the user's confirmation.
-- TypeScript 6.0 with `strict` in both projects: `tsconfig.app.json` (`src/`) and `tsconfig.node.json` (configs, `scripts/`, `e2e/`). TypeScript 7 is not used yet: typescript-eslint supports `<6.1`.
+- TypeScript 6.0 with `strict` in its three projects: `tsconfig.app.json` (`src/`), `tsconfig.node.json` (configs and `scripts/`) and `tsconfig.e2e.json` (`e2e/`, with the DOM types for code that runs in the page). TypeScript 7 is not used yet: typescript-eslint supports `<6.1`.
 - `@/` is `src/`, in `tsconfig.json`, `tsconfig.app.json`, `vite.config.ts` and `components.json`.
 - Tailwind 4 through `@tailwindcss/vite`. shadcn (style `base-nova`, Base UI primitives) writes its components to `src/components/ui/` and its helper to `src/shared/lib/utils.ts`.
-- Scripts: `contract`, `contract:check`, `lint`, `knip`, `test`, `build`, `e2e`. `just check-frontend` runs them all, plus `tsc -b` ([repository.md](repository.md)).
+- `components.json` keeps `iconLibrary: "lucide"`, but `lucide-react` is not installed: a `shadcn add` of a component with icons adds it, and that is a new dependency the user confirms.
+- Scripts: `contract`, `contract:check`, `lint`, `knip`, `test`, `build` (`tsc -b`, then `vite build`), `e2e`. `just check-frontend` runs all but `contract`, which `just contract` runs ([repository.md](repository.md)).
 
 ## Layout and boundaries
 
@@ -47,7 +48,7 @@ An entities layer (as in Feature-Sliced Design) is added only if it appears.
 - `fetch`, then `TextDecoderStream` and eventsource-parser's `EventSourceParserStream`, read with a stream reader.
 - It checks the status first (401 means the session ended; it says to run `ivlia web`) and that `Content-Type` is `text/event-stream`.
 - Each event is validated with the generated Ajv validator. Tolerant reader: an unknown `type` (Ajv's `discriminator` error `mapping`) is skipped and logged with a fixed message, without its content; any other invalid event is an error.
-- Errors are `ApiError` with a message shown as is. A cancellation (`signal`) passes through unchanged.
+- Errors are `ApiError` with a message shown as is, also when the connection fails in the middle of the stream. A cancellation (`signal`) passes through unchanged. When the caller stops reading, the response is closed.
 - Requests use the session cookie (same origin); the web never sees the token.
 
 ## Chat UI
@@ -69,7 +70,8 @@ An entities layer (as in Feature-Sliced Design) is added only if it appears.
 
 - Playwright ([frontend/playwright.config.ts](../../frontend/playwright.config.ts)) with Chromium, against the built SPA served by FastAPI, as in use. `just setup` installs the browser.
 - `webServer` starts `ivlia-server` on port 8767 with a temporary `IVLIA_HOME`, a random token per run in `IVLIA_API_TOKEN`, and `IVLIA_DEV_ORIGIN` set to the server itself, so one-time links point at it. The dev installation's data is never touched.
-- The test mints a link with the token, opens it, sends a message and sees the hello-world answer. It also checks that axe finds no violations, that no request leaves the page's origin, and that the Content-Security-Policy reports no violation.
+- `e2e` serves the SPA as last built: run `pnpm run build` first (`just check-frontend` does). The temporary folder is removed at the end (`e2e/teardown.ts`).
+- The test mints a link with the token, opens it, sends a message and sees the hello-world answer. It also checks that axe finds no violations, that no request leaves the page's origin, and that no `securitypolicyviolation` event fires.
 
 ## Development
 

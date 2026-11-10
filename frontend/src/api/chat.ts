@@ -40,13 +40,28 @@ export async function* streamChat(
     .getReader();
   try {
     for (;;) {
-      const { done, value } = await reader.read();
+      const { done, value } = await read(reader, signal);
       if (done) return;
       const event = parseEvent(value.data);
       if (event !== null) yield event;
     }
   } finally {
-    reader.releaseLock();
+    // Also when the caller stops early: close the response, not just the
+    // reader. On a stream that already failed, cancel rejects with that same
+    // error, which must not replace the one being thrown.
+    await reader.cancel().catch(() => undefined);
+  }
+}
+
+async function read<T>(
+  reader: ReadableStreamDefaultReader<T>,
+  signal: AbortSignal | undefined,
+): Promise<ReadableStreamReadResult<T>> {
+  try {
+    return await reader.read();
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    throw new ApiError("The connection to the ivlia server failed.");
   }
 }
 

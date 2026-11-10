@@ -39,7 +39,7 @@ Enabled in the same file (`sandbox`):
   - `backend/**/*.py`: `ruff format`, then `ruff check --fix` (`uv run --locked`).
   - `frontend/**`: Prettier (from the root, so `.prettierignore` applies), then `eslint --fix` for TypeScript. Generated code is skipped by the tools' ignore files.
 
-  Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch files inside each zone, the frontend one neither hidden nor gitignored, because TypeScript and Prettier skip those. The backend part was checked in a live session on 2026-11-10.
+  Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch files inside each zone, the frontend one neither hidden nor gitignored, because TypeScript and Prettier skip those. Both parts were checked in a live session on 2026-11-10.
 - Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
 
 ## Validar

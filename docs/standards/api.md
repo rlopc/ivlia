@@ -48,8 +48,9 @@ The chat endpoint only serializes the events of the `Chat` use case: `token` eve
 
 - FastAPI serves the built SPA from the package (`ivlia.api.spa`): `vite build` writes it to `backend/src/ivlia/api/static/` (gitignored). `/assets/*` are its files, known top-level files (the favicon) are served by name, and any other non-API path gets `index.html`. A path never reaches the disk outside that folder (tested with encoded `..`). Unknown `/api` paths are 404.
 - Without a built SPA (dev with Vite, backend tests), FastAPI serves only the API.
-- SPA responses carry a strict `Content-Security-Policy` (`default-src 'self'`, `connect-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, among others): the page cannot reach any other origin. The end-to-end test checks that no request leaves the origin and that the policy reports no violation.
+- SPA responses carry a strict `Content-Security-Policy` (`default-src 'self'`, `connect-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, among others): the page cannot reach any other origin. The end-to-end test checks that no request leaves the origin and that no `securitypolicyviolation` event fires. They also carry `X-Content-Type-Options: nosniff` and `Cache-Control: no-cache`, so a cached `index.html` never points at the assets of an older build.
 - Development: Vite (`http://localhost:5173`) proxies `/api` to the API with `changeOrigin: true`. The proxy rewrites only `Host`, to the API's own, which the Host allowlist accepts; `Origin` stays the dev origin, which only the dev installation allows. Adding `localhost:5173` to the Host allowlist instead would widen it for nothing.
+- `dev_origin` must be an origin (`http` or `https`, a host, an optional port, no path); anything else stops the start.
 - `web_origin` (`ivlia.config`): where the browser opens the web. In use, the API itself; in dev, `dev_origin`. One-time links point there, so the session cookie belongs to the origin that uses it; the proxy passes `Set-Cookie` and the relative `303` to `/` unchanged.
 
 ## Listening and port

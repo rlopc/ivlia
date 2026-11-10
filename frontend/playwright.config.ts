@@ -14,6 +14,7 @@ process.env.IVLIA_E2E_HOME ??= mkdtempSync(path.join(tmpdir(), "ivlia-e2e-"));
 
 export default defineConfig({
   testDir: "e2e",
+  globalTeardown: "./e2e/teardown.ts",
   forbidOnly: Boolean(process.env.CI),
   use: { baseURL: origin, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

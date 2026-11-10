@@ -57,6 +57,23 @@ def test_invalid_toml_value_names_the_setting_and_value(tmp_path: Path) -> None:
         load_config(_installation(tmp_path))
 
 
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "http://localhost:5173/",
+        "localhost:5173",
+        "ftp://localhost:5173",
+        "http://localhost:99999",
+        "http://user@localhost:5173",
+    ],
+)
+def test_dev_origin_must_be_an_origin(tmp_path: Path, origin: str) -> None:
+    (tmp_path / "config.toml").write_text(f'dev_origin = "{origin}"\n')
+
+    with pytest.raises(ConfigError, match=r"- dev_origin: "):
+        load_config(_installation(tmp_path))
+
+
 def test_unknown_toml_key_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "config.toml").write_text("prot = 9000\n")
 
