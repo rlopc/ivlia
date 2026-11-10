@@ -25,6 +25,18 @@ AGPL-3.0-or-later. The full text is in [LICENSE](LICENSE).
 
 See [docs/standards/repository.md](docs/standards/repository.md) for details.
 
+## Install a release
+
+Only tagged releases are installed for use. Download the wheel and its provenance bundle from a [release](https://github.com/rlopc/ivlia/releases), verify it, and install it with [uv](https://docs.astral.sh/uv/):
+
+```sh
+gh release download vX.Y.Z --repo rlopc/ivlia --pattern '*.whl*'
+gh attestation verify ivlia-X.Y.Z-py3-none-any.whl --repo rlopc/ivlia
+uv tool install ./ivlia-X.Y.Z-py3-none-any.whl
+```
+
+Details: [docs/standards/release.md](docs/standards/release.md).
+
 ## Contributing and security
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).

@@ -11,6 +11,7 @@ GitHub Actions in [.github/workflows/](../../.github/workflows/) and Dependabot 
 | `scorecard.yml` | pushes to `main`, weekly | OpenSSF Scorecard, published, with SARIF to code scanning |
 | `pr-title.yml` (job `PR title`) | pull request opened, edited, synchronized or reopened | the title follows Conventional Commits with a required scope ([README](README.md#git)) |
 | `links.yml` | weekly, manual | external links with lychee; on failure, opens the "Broken external links" issue or comments on the open one |
+| `release.yml` | pushes to `main` | release-please, `uv lock` on the release PR, and the release assets ([release.md](release.md)) |
 | `tool-updates.yml` | monthly, manual | opens the "Update the tools in mise.toml" issue or comments on the open one |
 
 Required status checks on `main` ([repository.md](repository.md#github)), added by the user after the first green run: `just check`, `PR title` and the three CodeQL `analyze` jobs.
@@ -33,7 +34,7 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - mise-action installs mise only (`install: false`), the same version as on the Mac, verified against its signed checksums; a `mise install` step installs the tools, with the job's read-only token to avoid GitHub API rate limits. The action would add `--locked`, which fails for pre-commit (pipx backend; see [repository.md](repository.md#known-limitations-and-risks-to-revisit)). pre-commit installs from its versioned dependency lock in `.mise/locks/`.
 - Checkout with `fetch-depth: 0`, because gitleaks scans the whole history.
 - Two caches: mise-action's own, of the installed tools (on by default, renewed every 30 days), and one `actions/cache` for the pnpm store, the uv cache and pre-commit's environments, keyed on their lockfiles and config. `uv cache prune --ci` keeps the uv part small. Playwright's browser is not cached, as Playwright advises; its system packages are installed on each run.
-- No cache in release workflows (step 6): a poisoned cache must never reach a published artifact.
+- No cache in the release workflow: a poisoned cache must never reach a published artifact.
 - `pnpm audit` complements Dependabot alerts for JavaScript; it fails on high or critical advisories. Before the first run it found one (re2js, through markdownlint), fixed with a pnpm override ([repository.md](repository.md#known-limitations-and-risks-to-revisit)).
 
 ## Scorecard

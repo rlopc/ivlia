@@ -11,7 +11,7 @@ The standards document describes the current state of the project's tools and pr
 - [api.md](api.md): the HTTP API: contract and its export, frontend types and validator, OpenAPI, endpoints, same origin and dev origin, Host and Origin, token, web session.
 - [frontend.md](frontend.md): the SPA: layout and boundaries, lint and types, SSE client, chat, tests, end-to-end and accessibility.
 - [ci.md](ci.md): GitHub Actions workflows, their security rules, required checks and Dependabot.
-- `release.md`: added in step 6.
+- [release.md](release.md): versioning and CHANGELOG, the release workflow and its credential, the wheel, provenance, install and verify.
 
 ## Git
 
