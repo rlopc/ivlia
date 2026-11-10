@@ -109,7 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -I \"${CLAUDE_PROJECT_DIR}/.claude/hooks/ruff-after-edit.py\""
+            "command": "python3 -I \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-after-edit.py\""
           }
         ]
       }

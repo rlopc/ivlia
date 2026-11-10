@@ -13,7 +13,7 @@
 __pycache__/
 .coverage
 .coverage.*
-# Scratch folders of the ruff hook test
+# Scratch folders of the lint hook test (the frontend one must not be ignored)
 backend/.hook-test.*/
 htmlcov/
 

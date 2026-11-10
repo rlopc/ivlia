@@ -9,6 +9,19 @@ from fastapi.staticfiles import StaticFiles
 STATIC_DIR = Path(__file__).parent / "static"
 """Where `vite build` writes the SPA. Missing in dev with Vite and in tests."""
 
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        # Nothing leaves the Mac: the page may only talk to ivlia's own API.
+        "connect-src 'self'",
+        "img-src 'self' data:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+
 
 def built_spa() -> Path | None:
     """The built SPA's folder, or None if it was not built."""
@@ -30,4 +43,7 @@ def mount_spa(app: FastAPI, static_dir: Path) -> None:
     async def spa(path: str) -> FileResponse:
         if path == "api" or path.startswith("api/"):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-        return FileResponse(files.get(path, index))
+        return FileResponse(
+            files.get(path, index),
+            headers={"Content-Security-Policy": CONTENT_SECURITY_POLICY},
+        )

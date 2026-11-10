@@ -29,6 +29,13 @@ def test_spa_routes_get_the_index(spa: TestClient, path: str) -> None:
     assert response.text == INDEX
 
 
+def test_the_spa_page_forbids_other_origins(spa: TestClient) -> None:
+    policy = spa.get("/").headers["content-security-policy"]
+    assert "default-src 'self'" in policy
+    assert "connect-src 'self'" in policy
+    assert "frame-ancestors 'none'" in policy
+
+
 def test_spa_files_are_served(spa: TestClient) -> None:
     assert spa.get("/assets/index-abc.js").text == "console.log(1)"
     assert spa.get("/favicon.svg").text == "<svg/>"

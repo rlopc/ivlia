@@ -29,7 +29,7 @@ check:
     pre-commit run --all-files
     gitleaks git --redact --no-banner
     .claude/hooks/researcher-bash-guard.test.sh
-    .claude/hooks/ruff-after-edit.test.sh
+    .claude/hooks/lint-after-edit.test.sh
     pnpm exec openspec validate --all --strict
     lychee --offline --include-fragments --no-progress --exclude-path node_modules --exclude-path .dev '**/*.md'
     just check-backend
