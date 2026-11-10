@@ -21,12 +21,15 @@ Web pages, documents and tool results can carry instructions.
 
 ### Malicious local web pages and DNS rebinding
 
-- The API listens only on localhost and requires a local token. The CLI sends it in a header; the web gets a one-time link exchanged for an `HttpOnly`, `SameSite=Strict` cookie. The API rejects requests whose `Host` or `Origin` is not its own ([docs/02](../02-arquitectura-e-interfaces.md), "API"). Implemented in step 2.
+- The API listens only on `127.0.0.1` and requires a local token. The CLI sends it in a header; the web gets a one-time link exchanged for an `HttpOnly`, `SameSite=Strict` cookie. The API rejects requests whose `Host` or `Origin` is not its own ([docs/02](../02-arquitectura-e-interfaces.md), "API"). Details and tests: [api.md](api.md#host-and-origin), [api.md](api.md#web-session).
 
 ### Data leaks to models, logs or the repository
 
 - Data levels: each component declares the maximum level it accepts and the policy blocks the rest; level 3 never goes to models or logs. A secret detector marks and replaces secrets before they are stored or sent ([docs/06](../06-datos-y-seguridad.md)). Arrives with the data layer.
-- Secrets live outside the code and the settings file; the development installation never uses the system keyring ([docs/07](../07-transversales.md)).
+- Secrets live outside the code and the settings file; the development installation never uses the system keyring ([docs/07](../07-transversales.md)). The secrets file has mode `0600` and the installation folder `0700`; a secrets file readable by others stops the start ([backend.md](backend.md#secrets)).
+- Logs and traces stay on the Mac and carry no message content by default: content fields and exception messages are removed, frame locals are never logged, spans keep no query strings and no exception messages ([backend.md](backend.md#logs-and-traces)).
+- Third-party telemetry that an environment variable could switch on (LangSmith tracing, FastAPI's built-in telemetry and its OTLP auto-configuration) is off in code, with tests ([backend.md](backend.md#third-party-telemetry)).
+- Tests never reach the real keychain: `keyring` points at its failing backend in every test ([backend.md](backend.md#tests-and-coverage)).
 - gitleaks runs in pre-commit (staged changes) and in `just check` (history). GitHub secret scanning with push protection is enabled. See [repository.md](repository.md#pre-commit).
 
 ### Compromised dependencies and tools
@@ -41,6 +44,7 @@ Web pages, documents and tool results can carry instructions.
 - Permission rules match command text and can be bypassed. The real guards are the sandbox and the GitHub ruleset on `main` (no force push, no deletion, PR required, no bypass) ([repository.md](repository.md#github)). The user reviews and merges every PR.
 - The sandbox does not cover the Read, Edit, Write and web tools, nor hooks; permission rules are the only guard for them.
 - Commands outside the allow list ask, and Claude cannot leave the sandbox; only `just setup` runs outside it, after the user approves ([ai-development.md](ai-development.md#bash-sandbox)).
+- The sandbox does not stop a command from using the system keychain. A run from the repository can only be the dev installation, which never uses the keychain: the start guard refuses anything else ([backend.md](backend.md#configuration)).
 - The reviewer agent reviews every branch before the user, with attention to secrets, permissions and network.
 
 ## Reporting

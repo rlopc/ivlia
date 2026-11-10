@@ -4,17 +4,21 @@
 
 - [mise.toml](../../mise.toml) pins node, uv, just, lychee, gitleaks, actionlint and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
 - pnpm is pinned only in `packageManager` of [package.json](../../package.json); mise reads it through `idiomatic_version_file_enable_tools`. Corepack is not used.
-- Python is not in mise: uv reads `.python-version` (from step 2).
+- Python is not in mise: uv reads [backend/.python-version](../../backend/.python-version). Python dependencies: [backend.md](backend.md#project).
 - pre-commit is installed by mise's pipx backend, which uses uv. `mise.lock` stores only its version, without checksum.
 - The root pnpm workspace ([pnpm-workspace.yaml](../../pnpm-workspace.yaml)) holds Prettier, markdownlint-cli2 and OpenSpec as exact dev dependencies, with a single `pnpm-lock.yaml`. `frontend/` joins it in step 4.
 - `.mise/` (mise local state) is gitignored. A fresh clone needs `mise trust` before `mise install`.
+- `[env]` in `mise.toml` also sets `IVLIA_ENV=dev` and `IVLIA_HOME=<repo>/.dev`, so any command in the repository uses the dev installation ([backend.md](backend.md#configuration)).
 
 ## `just` recipes
 
-Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"` (cooldown for the pre-commit environments), `OPENSPEC_TELEMETRY=0` and `DO_NOT_TRACK=1`.
+Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"` (cooldown for the pre-commit environments), `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
 
-- `just setup`: `mise install`, `pnpm install --frozen-lockfile`, `pre-commit install` and `pre-commit install-hooks`. Uses the network; the only recipe that installs.
-- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the `.claude` hook test, `openspec validate --all --strict` and the offline link check.
+- `just setup`: `mise install`, `pnpm install --frozen-lockfile`, `uv sync --locked` for `backend/`, `pre-commit install` and `pre-commit install-hooks`. Uses the network; the only recipe that installs.
+- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, the offline link check and `just check-backend`.
+- `just check-backend`: mypy, import-linter, and the tests under coverage with its two reports ([backend.md](backend.md#tests-and-coverage)). All through `uv run --locked`. ruff runs in pre-commit.
+- `just contract`: exports the event contract and the OpenAPI document ([api.md](api.md#export)).
+- `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just fix`: Prettier and markdownlint auto-fixes.
 - `just review-diff`: writes the diff against `main` and the changed-file list to `.dev/review/` for the reviewer agent.
 
@@ -25,9 +29,10 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 - Rule: a tool that has a lockfile runs as a local hook with the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation).
   - gitleaks and actionlint: installed by mise (binaries with checksums in `mise.lock`).
   - markdownlint-cli2 and Prettier: run through pnpm.
-  - ruff will follow with `uv run --locked` in step 2.
+  - ruff format and ruff check: run through `uv run --locked --project backend`.
 - zizmor and shellcheck have no lockfile in the repository: they are remote hooks pinned by revision.
-- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, Prettier.
+- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff format and ruff check with `--fix` (Python in `backend/`), Prettier.
+- A hook that changes files fails that run; running `just check` again passes.
 - `minimum_pre_commit_version` is set. prek is not used: it is still 0.x; revisit at 1.0.
 
 ## Formatting
@@ -40,7 +45,8 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 
 Never edited by hand; regenerated with their command and excluded from Prettier and markdownlint.
 
-- Lockfiles: `pnpm-lock.yaml`, `mise.lock` (and `uv.lock` from step 2).
+- Lockfiles: `pnpm-lock.yaml`, `mise.lock` and `backend/uv.lock`.
+- `backend/schemas/events.schema.json` and `backend/schemas/openapi.json`: regenerate with `just contract` ([api.md](api.md#export)).
 - OpenSpec output: `.claude/skills/openspec-*/` and `.claude/commands/opsx/` (regenerate with `openspec update` after an upgrade). See [ai-development.md](ai-development.md#openspec).
 
 `pnpm-lock.yaml` has two YAML documents; Dependabot may not raise security alerts for it (to investigate in steps 4 and 5).
@@ -54,7 +60,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 - `README.md`, `SECURITY.md`, `CONTRIBUTING.md` and `LICENSE` at the root.
 - `.github/`: [pull request template](../../.github/pull_request_template.md) and issue forms (bug report, feature request) with blank issues disabled and a link to private security reporting.
 - No CODEOWNERS, Code of Conduct or DCO until contributions open.
-- `.gitignore` excludes local files (`*.local.*`), `.dev/` (Validar reports, review diffs), `.mise/`, and build and cache outputs.
+- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), `.mise/`, the scratch folders of the ruff hook test, and build and cache outputs.
 
 ## License
 
