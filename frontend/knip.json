@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreIssues": {
+    "src/contract/**": ["exports", "types"],
+    "src/components/ui/**": ["exports"]
+  },
+  "ignoreFiles": ["src/contract/validate-event.d.ts", "src/shared/lib/utils.ts"]
+}

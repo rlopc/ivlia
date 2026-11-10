@@ -154,7 +154,7 @@ Design: [docs/02](../02-arquitectura-e-interfaces.md) ("CLI"). Code: `ivlia.cli`
 - The CLI uses ivlia only through the HTTP API, like the web. It reads the port and the API token through `ivlia.config`, from the same installation as the server. It never creates the token: if there is none yet, it asks to start the server once.
 - Commands:
   - `ivlia ask "<message>"` streams the answer to stdout as it arrives.
-  - `ivlia web` asks the API for a one-time link and opens the browser on it. It accepts only a link to the API's own session page (`/api/session?` on the same scheme, host and port), so another program on the port cannot make it open any URL. If no browser opens, it prints the link, which works once within 60 seconds.
+  - `ivlia web` asks the API for a one-time link and opens the browser on it. It accepts only a link to the session page of the installation's web origin (`web_origin`: the API in use, Vite in dev; [api.md](api.md#same-origin-and-dev-origin)), so another program on the port cannot make it open any URL. If no browser opens, it prints the link, which works once within 60 seconds.
 - `cli/client.py` is the API client and the only module that imports httpx2. It sends contract models and yields contract events parsed with the Pydantic models:
   - Tolerant reader: an event whose `type` it does not know is skipped and logged with a fixed message, without its content. An event of a known type that does not validate is an error.
   - httpx2 does not raise on an error status, so the client checks the status before reading the stream: 401 means the token was rejected.

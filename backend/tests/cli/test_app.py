@@ -157,6 +157,7 @@ def test_connect_from_config_uses_the_port_and_token(
         http = client._http
         assert http.base_url == "http://127.0.0.1:8766"
         assert http.headers["Authorization"] == "Bearer t0ken"
+        assert client._web_origin == "http://localhost:5173"
 
 
 def test_connect_from_config_needs_a_token(

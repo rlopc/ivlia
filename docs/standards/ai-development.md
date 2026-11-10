@@ -6,7 +6,7 @@ Design: [docs/09](../09-ia-en-el-desarrollo.md).
 
 - [AGENTS.md](../../AGENTS.md): short; only what the AI cannot infer from the code (how to run `just check`, what not to touch without asking) and links to these standards.
 - [CLAUDE.md](../../CLAUDE.md): imports `@AGENTS.md` and adds only what is specific to Claude Code.
-- `.claude/rules/*.md`: rules per zone with a `paths:` list, which only link to this standards document. [backend.md](../../.claude/rules/backend.md) covers `backend/**`; the frontend rule arrives in step 4.
+- `.claude/rules/*.md`: rules per zone with a `paths:` list, which only link to this standards document. [backend.md](../../.claude/rules/backend.md) covers `backend/**` and [frontend.md](../../.claude/rules/frontend.md) covers `frontend/**`.
 - No rule is duplicated: this standards document is the single source and is linked.
 
 ## Claude Code permissions
@@ -35,7 +35,11 @@ Enabled in the same file (`sandbox`):
 ## Hooks
 
 - PreToolUse on Bash: `researcher-bash-guard.py` limits the read-only Bash of the `researcher` agent; its test (`.claude/hooks/researcher-bash-guard.test.sh`) runs in `just check`.
-- PostToolUse on `Edit` and `Write`: `ruff-after-edit.py` runs `ruff format` and `ruff check --fix` on each Python file under `backend/` that Claude edits, through `mise exec -- uv run --locked`. Errors that ruff cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/ruff-after-edit.test.sh`) runs in `just check`. Checked in a live session on 2026-11-10.
+- PostToolUse on `Edit` and `Write`: `lint-after-edit.py` formats and lints each file Claude edits with the tools of its zone, through `mise exec`:
+  - `backend/**/*.py`: `ruff format`, then `ruff check --fix` (`uv run --locked`).
+  - `frontend/**`: Prettier (from the root, so `.prettierignore` applies), then `eslint --fix` for TypeScript. Generated code is skipped by the tools' ignore files.
+
+  Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch files inside each zone, the frontend one neither hidden nor gitignored, because TypeScript and Prettier skip those. Both parts were checked in a live session on 2026-11-10.
 - Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
 
 ## Validar

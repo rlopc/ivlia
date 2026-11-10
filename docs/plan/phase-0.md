@@ -272,7 +272,7 @@ None.
 
 ## Step 3: CLI
 
-Status: in progress. PR title: `feat(cli): <summary>`.
+Status: done. PR title: `feat(cli): <summary>`.
 
 ### 3.1 Goal
 
@@ -298,7 +298,7 @@ Fill the `ivlia.cli` subpackage with `ivlia ask` and `ivlia web`, both through t
 
 ### 3.4 User-only actions
 
-- [ ] User only: confirm the dependencies, approve the push and merge the PR.
+- [x] User only: confirm the dependencies, approve the push and merge the PR.
 
 ### 3.5 Done criteria
 
@@ -318,7 +318,7 @@ None.
 
 ## Step 4: Frontend
 
-Status: todo. PR title: `feat(frontend): <summary>`.
+Status: in progress. PR title: `feat(frontend): <summary>`.
 
 ### 4.1 Goal
 
@@ -336,11 +336,11 @@ Create the SPA in `frontend/` with one chat page that streams the hello-world an
 
 ### 4.3 Tasks
 
-- [ ] Scaffold `frontend/` (Vite, React, TypeScript strict) with `pnpm create vite@<exact version>`; it uses the network and adds dependencies, so the user confirms first. It is a package of the root pnpm workspace (add it to `pnpm-workspace.yaml`), with `"version": "0.0.0"` (assumed) and `"license": "AGPL-3.0-or-later"`.
-- [ ] Add only the spike's dependencies; the user confirms first: json-schema-to-typescript, Ajv (assumed).
-- [ ] Spike (decision 2026-11-09), before the rest of the step: from `backend/schemas/events.schema.json`, generate TS types with json-schema-to-typescript and a standalone Ajv validator with `ajv/dist/2020`, after removing `discriminator.mapping`. Prove that (1) the standalone validator accepts valid events and rejects invalid ones, and (2) TypeScript narrows the union by `type` in a `switch`. Report to the user before continuing.
-- [ ] Add the rest of the dependencies; the user confirms the list again. It includes Tailwind with `@tailwindcss/vite`, then `pnpm dlx shadcn@<exact version> init`, which uses the network and adds dependencies. `@assistant-ui/react` pinned to an exact version (decision 2026-11-09). No Zod in Phase 0 (decision 2026-11-09): it arrives with the first form, and then it is reviewed whether it is still needed next to Ajv.
-- [ ] Layout by feature (decision 2026-11-09), in `frontend/src/`:
+- [x] Scaffold `frontend/` (Vite, React, TypeScript strict) with `pnpm create vite@<exact version>`; it uses the network and adds dependencies, so the user confirms first. It is a package of the root pnpm workspace (add it to `pnpm-workspace.yaml`), with `"version": "0.0.0"` (assumed) and `"license": "AGPL-3.0-or-later"`.
+- [x] Add only the spike's dependencies; the user confirms first: json-schema-to-typescript, Ajv (assumed).
+- [x] Spike (decision 2026-11-09), before the rest of the step: from `backend/schemas/events.schema.json`, generate TS types with json-schema-to-typescript and a standalone Ajv validator with `ajv/dist/2020`, after removing `discriminator.mapping`. Prove that (1) the standalone validator accepts valid events and rejects invalid ones, and (2) TypeScript narrows the union by `type` in a `switch`. Report to the user before continuing.
+- [x] Add the rest of the dependencies; the user confirms the list again. It includes Tailwind with `@tailwindcss/vite`, then `pnpm dlx shadcn@<exact version> init`, which uses the network and adds dependencies. `@assistant-ui/react` pinned to an exact version (decision 2026-11-09). No Zod in Phase 0 (decision 2026-11-09): it arrives with the first form, and then it is reviewed whether it is still needed next to Ajv.
+- [x] Layout by feature (decision 2026-11-09), in `frontend/src/`:
   - `contract/`: generated types and validator.
   - `api/`: the only code that uses the network.
   - `shared/`: code used by more than one feature.
@@ -348,14 +348,14 @@ Create the SPA in `frontend/` with one chat page that streams the hello-world an
   - `components/ui/`: shadcn components.
   - `app/`: entry, routes and providers.
   - An entities layer (as in Feature-Sliced Design) only if it appears.
-- [ ] Tailwind 4 with `@tailwindcss/vite`; shadcn components in `src/components/ui`. That folder is excluded from coverage and strict lint, but not from `tsc` and Prettier; a component that is modified moves out of `ui/` (decision 2026-11-09).
-- [ ] Contract generation (decision 2026-11-09): a `pnpm` script, which `just contract` runs after the JSON Schema export of step 2 (assumed), removes `discriminator.mapping` from a copy of the versioned JSON Schema and generates the types and the Ajv validator into `src/contract/`. Both outputs are versioned and marked as generated, and excluded from coverage, Prettier and ESLint, so the check is stable (assumed). A check mode regenerates into a temporary folder and fails on any difference; it runs in `just check`. Zod is not used for the contract.
-- [ ] SSE client in `src/api/`: `fetch` plus eventsource-parser; each event is validated with the Ajv validator and typed with the generated types. Unknown event types are ignored and logged (tolerant reader, decision 2026-11-09).
-- [ ] Chat UI: assistant-ui with ExternalStoreRuntime behind an own adapter module in `features/chat`, so it can be replaced (decision 2026-11-09). The assistant-ui spike for citations, approvals and delegation happens before slice 6, not here; the fallback is an own chat built with shadcn.
-- [ ] Routing and data: React Router in SPA declarative mode with the chat route and a not-found route; TanStack Query for the health status.
-- [ ] Dev origin: confirm the default of the step 2 dev origin setting (`http://localhost:5173`) or change it to the one found in Validar; apply the Validar choice for the proxied `Host`; `ivlia web` opens that origin. Backend tests for both installations.
-- [ ] Same origin (decision 2026-11-09): FastAPI serves the built SPA from the package and returns `index.html` for non-`/api` paths. In dev, Vite proxies `/api` to the API. The build output goes to `backend/src/ivlia/api/static/`, gitignored (assumed). When it is missing (dev with Vite, backend tests), FastAPI does not serve the SPA and the API still works (assumed).
-- [ ] Lint and format: ESLint flat config with `strictTypeChecked`, react-hooks and eslint-plugin-boundaries (decision 2026-11-09):
+- [x] Tailwind 4 with `@tailwindcss/vite`; shadcn components in `src/components/ui`. That folder is excluded from coverage and strict lint, but not from `tsc` and Prettier; a component that is modified moves out of `ui/` (decision 2026-11-09).
+- [x] Contract generation (decision 2026-11-09): a `pnpm` script, which `just contract` runs after the JSON Schema export of step 2 (assumed), removes `discriminator.mapping` from a copy of the versioned JSON Schema and generates the types and the Ajv validator into `src/contract/`. Both outputs are versioned and marked as generated, and excluded from coverage, Prettier and ESLint, so the check is stable (assumed). A check mode regenerates into a temporary folder and fails on any difference; it runs in `just check`. Zod is not used for the contract.
+- [x] SSE client in `src/api/`: `fetch` plus eventsource-parser; each event is validated with the Ajv validator and typed with the generated types. Unknown event types are ignored and logged (tolerant reader, decision 2026-11-09).
+- [x] Chat UI: assistant-ui with ExternalStoreRuntime behind an own adapter module in `features/chat`, so it can be replaced (decision 2026-11-09). The assistant-ui spike for citations, approvals and delegation happens before slice 6, not here; the fallback is an own chat built with shadcn.
+- [x] Routing and data: React Router in SPA declarative mode with the chat route and a not-found route; TanStack Query for the health status.
+- [x] Dev origin: confirm the default of the step 2 dev origin setting (`http://localhost:5173`) or change it to the one found in Validar; apply the Validar choice for the proxied `Host`; `ivlia web` opens that origin. Backend tests for both installations.
+- [x] Same origin (decision 2026-11-09): FastAPI serves the built SPA from the package and returns `index.html` for non-`/api` paths. In dev, Vite proxies `/api` to the API. The build output goes to `backend/src/ivlia/api/static/`, gitignored (assumed). When it is missing (dev with Vite, backend tests), FastAPI does not serve the SPA and the API still works (assumed).
+- [x] Lint and format: ESLint flat config with `strictTypeChecked`, react-hooks and eslint-plugin-boundaries (decision 2026-11-09):
   - features do not import each other; common code goes to `shared/`;
   - `shared/` does not import features;
   - `api/` imports only `contract/`;
@@ -364,17 +364,18 @@ Create the SPA in `frontend/` with one chat page that streams the hello-world an
   - only the chat adapter imports assistant-ui.
 
   Also Prettier, knip, `tsc --noEmit`.
-- [ ] Tests: Vitest with React Testing Library and MSW (Node: `http` handler that returns a `ReadableStream` for SSE). Coverage-v8 thresholds per glob: 100 % on `features/*/model/`, 95 % on the rest (decision 2026-11-09); `src/components/ui` excluded.
-- [ ] End-to-end: Playwright with axe against FastAPI serving the built SPA (assumed, closest to production). The Playwright config generates a random token per run, passes it to the server started by `webServer` in `IVLIA_API_TOKEN`, which the env-first secret lookup reads first (step 2), and passes the same value to the tests (assumed). The test asks the API for a one-time link with that token (decision 2026-11-09), opens it, sends a message, sees the hello-world answer, and finds no axe violations. `just setup` installs the Playwright browser (network: user confirms the first time).
-- [ ] `justfile`: add the frontend checks to `check` (Prettier, ESLint, knip, `tsc`, contract generation check, Vitest with coverage, build, Playwright). Add `just dev-web`: `ivlia-server` and Vite together for development (name assumed).
-- [ ] PostToolUse hook: extend it for `frontend/**` (Prettier and ESLint with `--fix` on the edited file), with tests.
-- [ ] `.claude/rules/frontend.md` with `paths: frontend/**`: only links to the standards document.
-- [ ] Record the outcome of the Dependabot and `pnpm-lock.yaml` risk in the decision map.
-- [ ] Update the standards document and `AGENTS.md` "Current state".
+- [x] Tests: Vitest with React Testing Library and MSW (Node: `http` handler that returns a `ReadableStream` for SSE). Coverage-v8 thresholds per glob: 100 % on `features/*/model/`, 95 % on the rest (decision 2026-11-09); `src/components/ui` excluded.
+- [x] End-to-end: Playwright with axe against FastAPI serving the built SPA (assumed, closest to production). The Playwright config generates a random token per run, passes it to the server started by `webServer` in `IVLIA_API_TOKEN`, which the env-first secret lookup reads first (step 2), and passes the same value to the tests (assumed). The test asks the API for a one-time link with that token (decision 2026-11-09), opens it, sends a message, sees the hello-world answer, and finds no axe violations. `just setup` installs the Playwright browser (network: user confirms the first time).
+- [x] `justfile`: add the frontend checks to `check` (Prettier, ESLint, knip, `tsc`, contract generation check, Vitest with coverage, build, Playwright). Add `just dev-web`: `ivlia-server` and Vite together for development (name assumed).
+- [x] PostToolUse hook: extend it for `frontend/**` (Prettier and ESLint with `--fix` on the edited file), with tests.
+- [x] `.claude/rules/frontend.md` with `paths: frontend/**`: only links to the standards document.
+- [x] Record the outcome of the Dependabot and `pnpm-lock.yaml` risk in the decision map. Outcome (user decision 2026-11-10): pnpm is pinned in `mise.toml` instead of `packageManager`, so the lockfile is one YAML document; `pnpm audit` runs in CI as a second layer (step 5).
+- [x] Update the standards document and `AGENTS.md` "Current state".
 
 ### 4.4 User-only actions
 
-- [ ] User only: confirm the Vite scaffold, the spike's dependencies, and then the rest of the list (including `shadcn init`).
+- [x] User only: confirm the Vite scaffold, the spike's dependencies, and then the rest of the list (including `shadcn init`).
+- [ ] User only: after the merge, check that Insights > Dependency graph lists the JavaScript dependencies (decision 2026-11-10).
 - [ ] User only: approve the push and merge the PR.
 
 ### 4.5 Done criteria
@@ -424,6 +425,7 @@ Run `just check` in GitHub Actions on every PR and on `main`, plus the CI-only c
 - [ ] `.github/workflows/links.yml`: weekly and manual; lychee-action on all Markdown with network; on failure, open an issue or update the open one (with `gh`, assumed) (decision 2026-11-09). Internal links and anchors keep blocking in `just check`.
 - [ ] `.github/dependabot.yml`: `uv` (directory `/backend`), `npm` (root workspace), `github-actions` (`/`); `cooldown: default-days: 7`; no wildcard groups (decision 2026-11-09); commit message `build(deps)` per Validar (decision 2026-11-09). Also `pre-commit` and mise if Validar found them supported (decision 2026-11-09).
 - [ ] For each of pre-commit and mise that Dependabot does not support (decision 2026-11-09): `just update-tools` and `.github/workflows/tool-updates.yml` (name assumed), monthly, which opens an issue or updates the open one.
+- [ ] `pnpm audit` in `ci.yml` (decision 2026-11-10): a second layer next to Dependabot alerts for JavaScript.
 - [ ] `just check` passes zizmor and actionlint on the new workflows.
 - [ ] Update the standards document and `AGENTS.md` "Current state".
 
@@ -469,6 +471,7 @@ Automate one SemVer version for the whole repository and its CHANGELOG with rele
 - How `backend/uv.lock` follows the version bump that release-please makes in `backend/pyproject.toml` without hand-editing a generated file (rule 9). Possible outcomes: a job on the release PR runs `uv lock` and commits with the App token, or a dynamic version from the tag (needs hatchling). The user is told and decides.
 - The first version release-please computes from `0.0.0` with `feat` commits and `bump-minor-pre-major` (expected `0.1.0`).
 - `uv tool install` from a wheel file or URL; `gh attestation verify`.
+- Risk (found in step 4): the built SPA lives in `backend/src/ivlia/api/static/`, which is gitignored; check that the build backend still puts it in the wheel (many exclude git-ignored files) and how the release builds it first.
 
 ### 6.3 Tasks
 

@@ -23,6 +23,19 @@ def test_default_port_depends_on_the_installation(
     assert load_config(_installation(tmp_path, env)).port == port
 
 
+@pytest.mark.parametrize(
+    ("env", "origin"),
+    [
+        (Environment.USE, "http://127.0.0.1:8765"),
+        (Environment.DEV, "http://localhost:5173"),
+    ],
+)
+def test_web_origin_is_vite_in_dev_and_the_api_in_use(
+    tmp_path: Path, env: Environment, origin: str
+) -> None:
+    assert load_config(_installation(tmp_path, env)).web_origin == origin
+
+
 def test_toml_overrides_defaults_and_environment_overrides_toml(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -41,6 +54,23 @@ def test_invalid_toml_value_names_the_setting_and_value(tmp_path: Path) -> None:
     (tmp_path / "config.toml").write_text('port = "eighty"\n')
 
     with pytest.raises(ConfigError, match=r"- port: .*\(got 'eighty'\)"):
+        load_config(_installation(tmp_path))
+
+
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "http://localhost:5173/",
+        "localhost:5173",
+        "ftp://localhost:5173",
+        "http://localhost:99999",
+        "http://user@localhost:5173",
+    ],
+)
+def test_dev_origin_must_be_an_origin(tmp_path: Path, origin: str) -> None:
+    (tmp_path / "config.toml").write_text(f'dev_origin = "{origin}"\n')
+
+    with pytest.raises(ConfigError, match=r"- dev_origin: "):
         load_config(_installation(tmp_path))
 
 

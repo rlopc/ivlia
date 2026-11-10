@@ -1,7 +1,10 @@
-# Tool versions for development and CI. pnpm is pinned in package.json
-# (packageManager); Python is pinned by uv in backend/.python-version.
+# Tool versions for development and CI. Python is pinned by uv in
+# backend/.python-version.
 [tools]
 node = "26.13.0"
+# Here, not in package.json's packageManager: with it, pnpm 12 writes a
+# two-document lockfile that GitHub's dependency graph cannot read.
+pnpm = "12.17.0"
 uv = "0.13.6"
 just = "1.59.0"
 lychee = "0.24.2"
@@ -21,4 +24,3 @@ _.path = ["{{ config_root }}/node_modules/.bin"]
 [settings]
 lockfile = true
 lockfile_platforms = ["macos-arm64", "linux-x64"]
-idiomatic_version_file_enable_tools = ["pnpm"]

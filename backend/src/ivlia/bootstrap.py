@@ -14,6 +14,7 @@ from ivlia.adapters.observability.logs import LOG_FILE, configure_logging
 from ivlia.adapters.observability.traces import tracer_provider
 from ivlia.adapters.sqlite.memory import open_memory_db
 from ivlia.api.app import create_app
+from ivlia.api.spa import built_spa
 from ivlia.application.chat import Chat
 from ivlia.application.orchestration.graph import build_graph
 from ivlia.config.installation import resolve_installation
@@ -51,7 +52,7 @@ def build_server() -> Server:
     open_memory_db(home, ivlia_version).close()
     token = api_token(secret_store(config.installation, settings.keyring_service))
     chat = Chat(build_graph(HelloWorldLLM()))
-    app = create_app(config, token, chat)
+    app = create_app(config, token, chat, spa_dir=built_spa())
     return Server(app=app, config=config, log_file=home / LOG_FILE)
 
 

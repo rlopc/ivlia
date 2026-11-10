@@ -13,7 +13,7 @@
 __pycache__/
 .coverage
 .coverage.*
-# Scratch folders of the ruff hook test
+# Scratch folders of the lint hook test (the frontend one must not be ignored)
 backend/.hook-test.*/
 htmlcov/
 
@@ -22,6 +22,9 @@ node_modules/
 
 # Build outputs
 dist/
+coverage/
+# The built SPA, which FastAPI serves (ivlia.api.spa)
+backend/src/ivlia/api/static/
 
 # Playwright
 playwright-report/

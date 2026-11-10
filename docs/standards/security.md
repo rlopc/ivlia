@@ -22,6 +22,8 @@ Web pages, documents and tool results can carry instructions.
 ### Malicious local web pages and DNS rebinding
 
 - The API listens only on `127.0.0.1` and requires a local token. The CLI sends it in a header ([backend.md](backend.md#cli)); the web gets a one-time link exchanged for an `HttpOnly`, `SameSite=Strict` cookie. The API rejects requests whose `Host` or `Origin` is not its own ([docs/02](../02-arquitectura-e-interfaces.md), "API"). Details and tests: [api.md](api.md#host-and-origin), [api.md](api.md#web-session).
+- The Vite dev origin is allowed only in the dev installation; the Vite proxy keeps the browser's `Origin` and rewrites only `Host` ([api.md](api.md#same-origin-and-dev-origin)).
+- The SPA has a strict Content-Security-Policy: it can load and connect only to its own origin, and cannot be framed. Its third-party UI library includes a cloud client that ivlia never uses; the policy would block it, and the end-to-end test fails on any request to another origin ([api.md](api.md#same-origin-and-dev-origin)).
 
 ### Data leaks to models, logs or the repository
 

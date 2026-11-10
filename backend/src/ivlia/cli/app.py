@@ -86,7 +86,7 @@ def connect_from_config() -> ApiClient:
     if token is None:
         msg = "There is no API token yet. Start the server once: `ivlia-server`."
         raise ConfigError(msg)
-    return ApiClient.connect(config.port, token)
+    return ApiClient.connect(config.port, token, config.web_origin)
 
 
 class _MessageOnly(logging.Formatter):

@@ -2,8 +2,9 @@
 
 import tomllib
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
-from pydantic import ValidationError
+from pydantic import ValidationError, field_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -31,6 +32,24 @@ class Settings(BaseSettings):
     trace_console: bool = False
     """Also print traces to the console."""
 
+    @field_validator("dev_origin")
+    @classmethod
+    def _must_be_an_origin(cls, value: str) -> str:
+        # It builds one-time links and is compared with Origin headers as is.
+        url = urlsplit(value)
+        if (
+            url.scheme not in {"http", "https"}
+            or not url.hostname
+            or url.username
+            or url.path
+            or url.query
+            or url.fragment
+        ):
+            msg = "must be an origin such as http://localhost:5173, with no path"
+            raise ValueError(msg)
+        url.port  # noqa: B018 (raises ValueError on an invalid port)
+        return value
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -52,6 +71,16 @@ class Config:
     @property
     def port(self) -> int:
         return self.settings.port or DEFAULT_PORTS[self.installation.env]
+
+    @property
+    def web_origin(self) -> str:
+        """Where the browser opens the web: Vite in dev, else the API itself.
+
+        The session cookie belongs to this origin, so one-time links point here.
+        """
+        if self.installation.env is Environment.DEV:
+            return self.settings.dev_origin
+        return f"http://127.0.0.1:{self.port}"
 
 
 def load_config(installation: Installation) -> Config:
