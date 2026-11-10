@@ -3,6 +3,7 @@
 
 # Generated files.
 backend/schemas/
+frontend/src/contract/
 pnpm-lock.yaml
 mise.lock
 .claude/commands/opsx/
