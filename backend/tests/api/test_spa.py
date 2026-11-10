@@ -66,3 +66,10 @@ def test_without_a_built_spa_only_the_api_answers() -> None:
     client = make_client()
     assert client.get("/").status_code == 404
     assert client.get("/api/health").status_code == 200
+
+
+def test_a_build_without_assets_still_serves_the_index(tmp_path: Path) -> None:
+    (tmp_path / "index.html").write_text(INDEX)
+    client = make_client(spa_dir=tmp_path)
+    assert client.get("/").text == INDEX
+    assert client.get("/assets/x.js").text == INDEX
