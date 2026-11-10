@@ -523,7 +523,7 @@ Status: done. PR title: `docs(docs): archive phase 0 plan`. Only after the step 
 
 - [x] Mark this plan as archived: status line and a note at the top.
 - [x] Update `AGENTS.md` "Current state": Phase 0 done; next: slice 2; remove the link to this plan.
-- [ ] User only: approve the push and merge the PR.
+- [x] User only: approve the push and merge the PR.
 
 ## Sources
 
