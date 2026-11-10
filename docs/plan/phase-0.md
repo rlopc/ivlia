@@ -1,6 +1,8 @@
 # Phase 0 implementation plan
 
-Status: active. Drafted 2026-11-09. Updated 2026-11-09 with the user's answers to all open questions and with an independent review: its routine fixes and the user's decisions on its findings; then with the routine fixes of a second independent review. The design changes of 2026-11-09 are already applied to `docs/`.
+> **Archived on 2026-11-10.** Phase 0 is done: every step's done criteria and the Phase 0 done criteria were verified, and release v0.1.0 is published. This plan is no longer maintained; the current state of the project is in the standards document ([docs/standards/](../standards/README.md)) and the decision map ([docs/decisions/](../decisions/README.md)).
+
+Status: archived. Drafted 2026-11-09. Updated 2026-11-09 with the user's answers to all open questions and with an independent review: its routine fixes and the user's decisions on its findings; then with the routine fixes of a second independent review. The design changes of 2026-11-09 are already applied to `docs/`.
 
 ## About this plan
 
@@ -456,7 +458,7 @@ None.
 
 ## Step 6: Release
 
-Status: in progress. PR title: `ci(repo): <summary>`.
+Status: done. PR title: `ci(repo): <summary>`.
 
 ### 6.1 Goal
 
@@ -486,8 +488,8 @@ Automate one SemVer version for the whole repository and its CHANGELOG with rele
 
 ### 6.4 User-only actions
 
-- [ ] User only: create the GitHub App with the minimum permissions release-please needs (contents and pull requests, read and write), install it on the repository, and store its ID as a variable and its private key as a secret.
-- [ ] User only: approve the push and merge the PR; then merge the first release PR.
+- [x] User only: create the GitHub App with the minimum permissions release-please needs (contents and pull requests, read and write), install it on the repository, and store its ID as a variable and its private key as a secret.
+- [x] User only: approve the push and merge the PR; then merge the first release PR.
 
 ### 6.5 Done criteria
 
@@ -517,10 +519,10 @@ Phase 0 does not include what the design or the decisions of 2026-11-09 postpone
 
 ## Final PR: archive this plan
 
-Status: todo. PR title: `docs(docs): archive phase 0 plan`. Only after the step 6 done criteria (release PR, release assets, attestation, install) and the Phase 0 done criteria are verified.
+Status: done. PR title: `docs(docs): archive phase 0 plan`. Only after the step 6 done criteria (release PR, release assets, attestation, install) and the Phase 0 done criteria are verified.
 
-- [ ] Mark this plan as archived: status line and a note at the top.
-- [ ] Update `AGENTS.md` "Current state": Phase 0 done; next: slice 2; remove the link to this plan.
+- [x] Mark this plan as archived: status line and a note at the top.
+- [x] Update `AGENTS.md` "Current state": Phase 0 done; next: slice 2; remove the link to this plan.
 - [ ] User only: approve the push and merge the PR.
 
 ## Sources
