@@ -163,7 +163,7 @@ None.
 
 ## Step 2: Backend
 
-Status: in progress. PR title: `feat(backend): <summary>`.
+Status: done. PR title: `feat(backend): <summary>`.
 
 ### 2.1 Goal
 
@@ -245,7 +245,7 @@ Create the Python package `ivlia` in `backend/` with its layers and a hello-worl
 - [x] User only: confirm the spike's dependencies before `uv add` (done), and then the rest of the list.
 - [x] User only: confirm the ruff family list.
 - [x] User only: decide keep or fallback after the OpenAPI 3.2 spike: keep OpenAPI 3.2 (decision 2026-11-10). FastAPI puts the typed union in `itemSchema` by itself; a test checks that the union's `$ref`s resolve, because openapi-spec-validator does not follow them inside `contentSchema`.
-- [ ] User only: approve the push and merge the PR.
+- [x] User only: approve the push and merge the PR.
 
 ### 2.5 Done criteria
 
@@ -272,7 +272,7 @@ None.
 
 ## Step 3: CLI
 
-Status: todo. PR title: `feat(cli): <summary>`.
+Status: in progress. PR title: `feat(cli): <summary>`.
 
 ### 3.1 Goal
 
@@ -286,15 +286,15 @@ Fill the `ivlia.cli` subpackage with `ivlia ask` and `ivlia web`, both through t
 
 ### 3.3 Tasks
 
-- [ ] Add Typer and httpx2 (or the fallback); the user confirms. httpx stays dev only (decision 2026-11-09).
-- [ ] `[project.scripts] ivlia = ...` in `backend/pyproject.toml`.
-- [ ] The CLI reads the API address and the token through `ivlia.config` (decision 2026-11-09).
-- [ ] An own client function that opens the SSE stream and yields contract events parsed with the Pydantic models. Only it imports httpx2. Unknown event types are ignored and logged (tolerant reader, decision 2026-11-09).
-- [ ] `ivlia ask "..."`: streams the answer to stdout; on an error event or connection failure, prints a clear message to stderr and exits non-zero.
-- [ ] `ivlia web`: asks the API for a one-time link (step 2) and opens the browser on it. Until step 4 the SPA root has no page (assumed).
-- [ ] import-linter: activate the rule that limits `ivlia.cli` to `contract`, `config` and `application/maintenance` (decision 2026-11-09).
-- [ ] Tests: CLI commands with `CliRunner` and a fake transport; unknown event type ignored; `ivlia web` with a fake browser opener, and the link it opens is accepted once by the API; one integration test against the real app; coverage thresholds as in step 2.
-- [ ] Update the standards document and `AGENTS.md` "Current state".
+- [x] Add Typer and httpx2 (or the fallback); the user confirms. httpx stays dev only (decision 2026-11-09).
+- [x] `[project.scripts] ivlia = ...` in `backend/pyproject.toml`.
+- [x] The CLI reads the API address and the token through `ivlia.config` (decision 2026-11-09).
+- [x] An own client function that opens the SSE stream and yields contract events parsed with the Pydantic models. Only it imports httpx2. Unknown event types are ignored and logged (tolerant reader, decision 2026-11-09).
+- [x] `ivlia ask "..."`: streams the answer to stdout; on an error event or connection failure, prints a clear message to stderr and exits non-zero.
+- [x] `ivlia web`: asks the API for a one-time link (step 2) and opens the browser on it. Until step 4 the SPA root has no page (assumed).
+- [x] import-linter: activate the rule that limits `ivlia.cli` to `contract`, `config` and `application/maintenance` (decision 2026-11-09).
+- [x] Tests: CLI commands with `CliRunner` and a fake transport; unknown event type ignored; `ivlia web` with a fake browser opener, and the link it opens is accepted once by the API; one integration test against the real app; coverage thresholds as in step 2.
+- [x] Update the standards document and `AGENTS.md` "Current state".
 
 ### 3.4 User-only actions
 
