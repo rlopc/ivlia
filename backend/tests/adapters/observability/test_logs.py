@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-SECRET_WORDS = "my private note"  # noqa: S105 (fake content)
+MESSAGE_CONTENT = "my private note"  # fake conversation content
 logger = logging.getLogger("ivlia.test")
 
 
@@ -30,7 +30,7 @@ def _lines(path: Path) -> list[dict[str, Any]]:
 
 
 def _fail_with_content() -> None:
-    content = SECRET_WORDS  # a frame local that must not be logged
+    content = MESSAGE_CONTENT  # a frame local that must not be logged
     msg = f"model failed on {content}"
     raise RuntimeError(msg)
 
@@ -48,14 +48,14 @@ def test_records_are_json_lines_with_metadata(log_file: Path) -> None:
 
 
 def test_content_does_not_reach_the_log_file(log_file: Path) -> None:
-    logger.info("user message", extra={"content": SECRET_WORDS})
+    logger.info("user message", extra={"content": MESSAGE_CONTENT})
     try:
         _fail_with_content()
     except RuntimeError:
         logger.exception("reply failed")
 
     text = log_file.read_text()
-    assert SECRET_WORDS not in text
+    assert MESSAGE_CONTENT not in text
     first, second = _lines(log_file)
     assert first["content"] == REMOVED
     assert second["exception"][0]["exc_type"] == "RuntimeError"
@@ -63,9 +63,9 @@ def test_content_does_not_reach_the_log_file(log_file: Path) -> None:
 
 @pytest.mark.parametrize("log_file", [True], indirect=True)
 def test_debug_mode_keeps_content(log_file: Path) -> None:
-    logger.info("user message", extra={"content": SECRET_WORDS})
+    logger.info("user message", extra={"content": MESSAGE_CONTENT})
 
-    assert _lines(log_file)[0]["content"] == SECRET_WORDS
+    assert _lines(log_file)[0]["content"] == MESSAGE_CONTENT
 
 
 def test_records_carry_the_current_trace(log_file: Path) -> None:
@@ -80,15 +80,15 @@ def test_records_carry_the_current_trace(log_file: Path) -> None:
 
 
 def test_exception_groups_and_notes_are_scrubbed(log_file: Path) -> None:
-    inner = ValueError(SECRET_WORDS)
-    inner.add_note(f"while reading {SECRET_WORDS}")
+    inner = ValueError(MESSAGE_CONTENT)
+    inner.add_note(f"while reading {MESSAGE_CONTENT}")
     try:
         msg = "reply failed"
         raise ExceptionGroup(msg, [inner])  # noqa: TRY301
     except ExceptionGroup:
         logger.exception("reply failed")
 
-    assert SECRET_WORDS not in log_file.read_text()
+    assert MESSAGE_CONTENT not in log_file.read_text()
     [line] = _lines(log_file)
     [group] = line["exception"]
     assert group["is_group"] is True
