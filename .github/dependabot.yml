@@ -14,7 +14,7 @@ updates:
       prefix: build(deps)
       prefix-development: build(deps)
 
-  # pnpm workspace: the root and frontend/, with the root pnpm-lock.yaml.
+  # The pnpm workspace, with the root pnpm-lock.yaml.
   - package-ecosystem: npm
     directory: /
     schedule:

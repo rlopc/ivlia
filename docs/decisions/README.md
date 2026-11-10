@@ -24,6 +24,7 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | pre-commit, not prek | Provisional | When prek reaches 1.0 | [repository.md](../standards/repository.md#pre-commit) |
 | gitleaks for secret scanning | Provisional | gitleaks is in maintenance mode; revisit Betterleaks, its successor | [repository.md](../standards/repository.md#known-limitations-and-risks-to-revisit) |
 | PR title check on `pull_request`, not `pull_request_target` | Provisional | If the repository accepts fork pull requests | [ci.md](../standards/ci.md#rules-for-every-workflow) |
+| `pnpm audit` in CI fails on high and critical advisories; fixes that a dependency has not released go in pnpm `overrides` | Final | — | [ci.md](../standards/ci.md#the-ci-job) |
 | mise tools updated by `just update-tools` and a monthly reminder issue, not Dependabot | Provisional | When Dependabot supports mise | [ci.md](../standards/ci.md#dependabot) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |
 | pnpm pinned in `mise.toml`, not in `packageManager`, so `pnpm-lock.yaml` is one YAML document that the dependency graph reads | Provisional | When GitHub's dependency graph reads two-document pnpm lockfiles | [repository.md](../standards/repository.md#tool-versions) |

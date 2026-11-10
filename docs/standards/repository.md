@@ -29,8 +29,9 @@ Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"
 
 Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit and pre-commit-uv.
 
+- Dependabot updates the `rev` of remote hooks ([ci.md](ci.md#dependabot)).
 - Rule: a tool that has a lockfile runs as a local hook with the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation).
-  - gitleaks and actionlint: installed by mise (binaries with checksums in `mise.lock`).
+  - gitleaks and actionlint: installed by mise (binaries whose checksums `mise.lock` records).
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
 - zizmor and shellcheck have no lockfile in the repository: they are remote hooks pinned by revision.
@@ -79,6 +80,7 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 
 ## Known limitations and risks to revisit
 
-- pipx tools have no checksum in `mise.lock`. `just setup` and CI run `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python (checked 2026-11-10). Whether the checksums of the other tools are still verified without `--locked` is not confirmed.
+- pipx tools have no checksum in `mise.lock`. `just setup` and CI run `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python (checked 2026-11-10). Whether the checksums of the other tools are still verified without `--locked` is not confirmed; mise's docs say only that a recorded checksum is still verified for backends exempt from strict mode. mise also recommends committing `.mise/locks/` for dependency-graph installs (pre-commit is one), which `.gitignore` excludes today; that may be why strict mode fails. Revisit both.
+- Dependency overrides in [pnpm-workspace.yaml](../../pnpm-workspace.yaml) (`overrides`) carry a security fix that a dependency has not released yet. Each one says when to remove it.
 - gitleaks is in maintenance mode (security fixes only); its README points to Betterleaks, by the same maintainer. Revisit.
 - prek is still 0.x. Revisit at 1.0.

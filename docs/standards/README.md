@@ -17,7 +17,7 @@ The standards document describes the current state of the project's tools and pr
 
 - Short branches named `<type>/<short-description>` (for example `chore/repo-setup`), created from `main`, the only permanent branch.
 - One pull request per step, squash-merged into `main`. `main` always works and `just check` is green.
-- PR title: `<type>(<area>): <summary>`. Types are the standard Conventional Commits types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, `style`, `revert`). Areas: `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps` (dependency updates). After the squash the title is the commit message.
+- PR title: `<type>(<area>): <summary>`. Types are the standard Conventional Commits types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, `style`, `revert`). Areas: `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps` (dependency updates). After the squash the title is the commit message. CI checks the format ([ci.md](ci.md#workflows)).
 - The user reviews and merges every PR. Settings that enforce this: [repository.md](repository.md#github).
 
 ## Documentation rule
@@ -47,5 +47,6 @@ The [PR template](../../.github/pull_request_template.md) lists these checks.
   - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) and in `[env]` of [mise.toml](../../mise.toml) (pre-commit environments, also when a hook is set up outside `just` in a shell with mise activated); `exclude-newer = "7 days"` in [backend/pyproject.toml](../../backend/pyproject.toml).
   - pnpm: `minimumReleaseAge: 10080` (minutes) in [pnpm-workspace.yaml](../../pnpm-workspace.yaml).
   - Dependabot: `cooldown: default-days: 7` in every ecosystem ([ci.md](ci.md#dependabot)).
+- mise's cooldown needs a release date: for a version without one, mise warns that it could not check it; read the warnings of `just update-tools`.
 - Exceptions (for example an urgent security fix) are explicit and per package: `exclude-newer-package` in uv, `minimumReleaseAgeExclude` in pnpm, `minimum_release_age_excludes` in mise. Dependabot security updates ignore the cooldown.
 - Before using a version, the Validar step re-confirms it ([ai-development.md](ai-development.md#validar)).

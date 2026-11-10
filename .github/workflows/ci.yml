@@ -36,12 +36,15 @@ jobs:
           install: false
 
       - run: mise install
+        env:
+          # Read-only; avoids GitHub API rate limits on shared runners.
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Find the cache folders
         id: cache-paths
         run: |
-          echo "pnpm=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-          echo "uv=$(uv cache dir)" >> "$GITHUB_OUTPUT"
+          echo "pnpm=$(mise exec -- pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+          echo "uv=$(mise exec -- uv cache dir)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
