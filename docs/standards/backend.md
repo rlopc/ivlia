@@ -154,13 +154,16 @@ Design: [docs/02](../02-arquitectura-e-interfaces.md) ("CLI"). Code: `ivlia.cli`
 - The CLI uses ivlia only through the HTTP API, like the web. It reads the port and the API token through `ivlia.config`, from the same installation as the server. It never creates the token: if there is none yet, it asks to start the server once.
 - Commands:
   - `ivlia ask "<message>"` streams the answer to stdout as it arrives.
-  - `ivlia web` asks the API for a one-time link and opens the browser on it. If no browser opens, it prints the link, which works once within 60 seconds.
+  - `ivlia web` asks the API for a one-time link and opens the browser on it. It accepts only a link to the API's own session page (`/api/session?` on the same scheme, host and port), so another program on the port cannot make it open any URL. If no browser opens, it prints the link, which works once within 60 seconds.
 - `cli/client.py` is the API client and the only module that imports httpx2. It sends contract models and yields contract events parsed with the Pydantic models:
   - Tolerant reader: an event whose `type` it does not know is skipped and logged with a fixed message, without its content. An event of a known type that does not validate is an error.
   - httpx2 does not raise on an error status, so the client checks the status before reading the stream: 401 means the token was rejected.
+  - Every httpx2 request error (`RequestError`: connection, timeout, invalid stream, decoding) becomes an `ApiError` with a clear message.
   - Timeouts: 5 seconds, except reading a chat stream, which has no limit, because a local model can take long to start. Ctrl-C stops it.
 - `cli/app.py` builds the Typer app with its ways out passed in (`build_app(connect, open_browser)`), so tests replace the API and the browser. A `match` on the event types ends in `assert_never`, so mypy fails if a new event type is not handled.
-- Errors and exit codes: a configuration error, an API or connection error, an error event, or a stream that ends without `end` prints `ivlia: <message>` to stderr and exits with status 1. Usage errors exit with status 2 (Typer). If part of the answer was printed, its line is ended first.
+- Errors and exit codes: a configuration error, an API or connection error, an error event, or a stream that ends without `end` prints `ivlia: <message>` to stderr and exits with status 1. Usage errors exit with status 2 (Typer), including a message that the contract rejects, such as an empty one. If part of the answer was printed, its line is ended first.
+- Tracebacks never show frame locals (`pretty_exceptions_show_locals=False`), because they could hold the token.
+- Logs: the CLI has no log file, because the JSON log is an adapter. Warnings go to stderr as one line, `ivlia: <message>`, without tracebacks.
 
 Tests (`backend/tests/cli/`):
 

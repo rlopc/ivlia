@@ -120,7 +120,7 @@ type = "forbidden"
 source_modules = ["ivlia.domain"]
 forbidden_modules = [
     "fastapi", "keyring", "langchain_core", "langgraph", "langsmith", "opentelemetry",
-    "pydantic", "pydantic_settings", "starlette", "structlog", "uvicorn",
+    "pydantic", "pydantic_settings", "starlette", "structlog", "typer", "uvicorn",
 ]
 
 [[tool.importlinter.contracts]]

@@ -1,3 +1,4 @@
+import logging
 import sys
 from typing import TYPE_CHECKING
 
@@ -128,8 +129,16 @@ def test_web_fails_clearly_without_a_server() -> None:
     assert browser.urls == []
 
 
+def test_ask_rejects_an_empty_message_as_a_usage_error() -> None:
+    result = runner.invoke(_cli(_refusing()), ["ask", ""])
+    assert result.exit_code == 2
+    assert "MESSAGE" in result.stderr
+    assert result.stdout == ""
+
+
 def test_no_command_shows_the_help() -> None:
     result = runner.invoke(_cli(_refusing()), [])
+    assert result.exit_code == 2
     assert "ask" in result.output
     assert "web" in result.output
 
@@ -156,6 +165,18 @@ def test_connect_from_config_needs_a_token(
     _dev_installation(monkeypatch, tmp_path)
     with pytest.raises(ConfigError, match="no API token yet"):
         connect_from_config()
+
+
+def test_cli_logs_one_line_without_traceback() -> None:
+    record = logging.LogRecord(
+        "ivlia", logging.WARNING, __file__, 1, "Keyring failed", None, None
+    )
+    try:
+        raise RuntimeError("detail")  # noqa: TRY301 (to get real exception info)
+    except RuntimeError:
+        record.exc_info = sys.exc_info()
+    formatter = cli_app._MessageOnly("ivlia: %(message)s")
+    assert formatter.format(record) == "ivlia: Keyring failed"
 
 
 def test_main_runs_the_cli(monkeypatch: pytest.MonkeyPatch) -> None:

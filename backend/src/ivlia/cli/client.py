@@ -7,7 +7,6 @@ import httpx2
 from pydantic import TypeAdapter, ValidationError
 
 from ivlia.contract.events import Event
-from ivlia.contract.requests import ChatRequest
 from ivlia.contract.sessions import SessionLink
 
 if TYPE_CHECKING:
@@ -15,6 +14,8 @@ if TYPE_CHECKING:
     from types import TracebackType
 
     from pydantic import SecretStr
+
+    from ivlia.contract.requests import ChatRequest
 
 logger = logging.getLogger(__name__)
 
@@ -55,13 +56,13 @@ class ApiClient:
     ) -> None:
         self._http.close()
 
-    def chat(self, message: str) -> Iterator[Event]:
+    def chat(self, request: ChatRequest) -> Iterator[Event]:
         """Send a message and yield the reply's events as they arrive.
 
         Unknown event types are skipped (tolerant reader), so an older CLI
         keeps working with a newer API.
         """
-        body = ChatRequest(message=message).model_dump(mode="json")
+        body = request.model_dump(mode="json")
         try:
             with self._http.sse(
                 "/api/chat", method="POST", json=body, timeout=_CHAT_TIMEOUT
@@ -73,21 +74,27 @@ class ApiClient:
                     event = _parse(sse.data)
                     if event is not None:
                         yield event
-        except httpx2.TransportError as error:
+        except httpx2.RequestError as error:
             raise ApiError(_describe(error)) from None
 
     def session_link(self) -> SessionLink:
         """A one-time link that opens the web with a new session."""
         try:
             response = self._http.post("/api/session/link")
-        except httpx2.TransportError as error:
+        except httpx2.RequestError as error:
             raise ApiError(_describe(error)) from None
         _check_status(response)
         try:
-            return SessionLink.model_validate_json(response.content)
+            link = SessionLink.model_validate_json(response.content)
         except ValidationError:
+            link = None
+        # The link goes to the browser: accept only ivlia's own session page,
+        # never whatever another program on the port answers.
+        page = self._http.base_url.join("/api/session")
+        if link is None or not link.url.startswith(f"{page}?"):
             msg = "The API sent an invalid session link."
-            raise ApiError(msg) from None
+            raise ApiError(msg)
+        return link
 
 
 def _parse(data: str) -> Event | None:
@@ -112,7 +119,7 @@ def _check_status(response: httpx2.Response) -> None:
     raise ApiError(msg)
 
 
-def _describe(error: httpx2.TransportError) -> str:
+def _describe(error: httpx2.RequestError) -> str:
     if isinstance(error, httpx2.ConnectError):
         return "Cannot reach the ivlia server. Is it running? (`ivlia-server`)"
     if isinstance(error, httpx2.TimeoutException):
