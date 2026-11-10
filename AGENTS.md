@@ -9,9 +9,9 @@
 
 ## Current state
 
-- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Steps 1 (repository and `just`), 2 (backend), 3 (CLI) and 4 (frontend) are done; step 5 (CI) is in progress, with its PR in review; next step: release.
+- **Fase 0** in progress: follow `docs/plan/phase-0.md`. Steps 1 to 5 (repository, backend, CLI, frontend, CI) are done; step 6 (release) is in progress, with its PR in review; next: the final PR that archives the plan.
 - The backend is the Python package in `backend/`, CLI included: [backend](docs/standards/backend.md), [API](docs/standards/api.md). The SPA is in `frontend/`: [frontend](docs/standards/frontend.md). Decisions: [decision map](docs/decisions/README.md).
-- Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`. CI runs the same checks and more: [ci](docs/standards/ci.md).
+- Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`. CI runs the same checks and more: [ci](docs/standards/ci.md). Releases: [release](docs/standards/release.md).
 - How the project is built and checked: the standards document, `docs/standards/README.md`.
 - `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `reviewer` agent, the lint hook after edits (ruff in `backend/`, Prettier and ESLint in `frontend/`), the rules per zone (`.claude/rules/`) and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
 

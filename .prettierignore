@@ -4,6 +4,7 @@
 # Generated files.
 backend/schemas/
 frontend/src/contract/
+.release-please-manifest.json
 pnpm-lock.yaml
 mise.lock
 .claude/commands/opsx/

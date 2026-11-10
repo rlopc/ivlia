@@ -50,6 +50,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 Never edited by hand; regenerated with their command and excluded from Prettier and markdownlint.
 
 - Lockfiles: `pnpm-lock.yaml`, `mise.lock` with `.mise/locks/` (regenerate with `mise lock`), and `backend/uv.lock`.
+- `CHANGELOG.md` and `.release-please-manifest.json`: written by release-please ([release.md](release.md#versioning-and-changelog)).
 - `backend/schemas/events.schema.json` and `backend/schemas/openapi.json`: regenerate with `just contract` ([api.md](api.md#export)).
 - `frontend/src/contract/`: regenerate with `just contract` ([api.md](api.md#frontend-types-and-validator)). Also excluded from ESLint, coverage and knip.
 - OpenSpec output: `.claude/skills/openspec-*/` and `.claude/commands/opsx/` (regenerate with `openspec update` after an upgrade). See [ai-development.md](ai-development.md#openspec).
