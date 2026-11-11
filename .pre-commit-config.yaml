@@ -98,7 +98,7 @@ repos:
         language: unsupported
         files: ^(backend/.*|\.claude/hooks/[^/]+)\.py$
 
-      # Every file, as `just fix` does: --ignore-unknown and .prettierignore
+      # Every file: --ignore-unknown and .prettierignore
       # decide what Prettier formats.
       - id: prettier
         name: prettier
