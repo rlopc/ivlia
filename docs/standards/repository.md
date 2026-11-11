@@ -29,7 +29,7 @@ Every development tool meets these rules. Review a tool against them whenever it
 
 ## `just` recipes
 
-Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation). `mise.toml` sets the last two too, and jdx/mise-action exports them in CI; the justfile repeats them on purpose, so every recipe uses the dev installation however `just` is started. `set ignore-comments` keeps comment lines inside recipes from being echoed or run.
+Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation). `mise.toml` sets the last two too, and jdx/mise-action exports them in CI (its `env` input, on by default); the justfile repeats them on purpose, so every recipe uses the dev installation however `just` is started. `set ignore-comments` keeps comment lines inside linewise recipes (not shebang recipes) from being echoed or run.
 
 - `just setup`: `mise install --locked`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked --all-packages`, `pre-commit install` and `pre-commit install-hooks` (through `uv run --locked`, like every pre-commit call). Uses the network; the only recipe that installs.
 - `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
@@ -40,7 +40,7 @@ Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `D
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
 - `just update-tools`: `mise upgrade --bump`, which upgrades every tool in `mise.toml` to its newest release at least 7 days old and updates `mise.lock`. Uses the network. `tool-updates.yml` reminds monthly ([ci.md](ci.md#dependabot)).
-- `just review-diff [base]`: writes the diff against `base` (default `main`; pass the parent branch of a stacked PR) and the changed-file list to `.dev/review/` for the reviewer agent.
+- `just review-diff [base]`: writes the diff against `base` (default `main`; pass the parent branch of a stacked PR), passed to git as a positional argument so it is never shell code and the changed-file list to `.dev/review/` for the reviewer agent.
 
 ## Pre-commit
 
