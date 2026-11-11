@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   release-please:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     # The GitHub App token does the work: PRs and tags made with GITHUB_TOKEN
     # would not trigger CI, and the release PR needs its required checks.
@@ -46,7 +46,7 @@ jobs:
   # release branch.
   sync:
     needs: release-please
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions: {}
     steps:
@@ -108,7 +108,7 @@ jobs:
   publish:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: write

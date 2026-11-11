@@ -11,7 +11,7 @@ permissions: {}
 
 jobs:
   remind:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       issues: write
@@ -27,6 +27,7 @@ jobs:
             old and updates mise.lock, and read its warnings. Also check the
             pins nothing updates: mise's version in .github/workflows/ci.yml and
             release.yml (the same as the Mac's, and min_version in mise.toml),
+            the Ubuntu runner label in every workflow (the newest GA image),
             uv's required-version in the root pyproject.toml, and Python's
             exact version in .python-version (the newest 3.14 patch at least 7
             days old). Then open a `build(deps)` pull request.

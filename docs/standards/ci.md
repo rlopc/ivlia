@@ -6,7 +6,7 @@ GitHub Actions in [.github/workflows/](../../.github/workflows/) and Dependabot 
 
 | Workflow | When | What |
 | --- | --- | --- |
-| `ci.yml` (job `just check`) | pull requests to `main`, pushes to `main` | `mise install --locked`, `just setup`, Playwright's system packages, `just check`, `pnpm audit --audit-level high` |
+| `ci.yml` (job `just check`) | pull requests to any base branch (so stacked ones are checked early), pushes to `main` | `mise install --locked`, `just setup`, Playwright's system packages, `just check`, `pnpm audit --audit-level high` |
 | `codeql.yml` (jobs `analyze (…)`) | pull requests, pushes to `main`, weekly | CodeQL advanced setup for `actions`, `javascript-typescript` and `python`, `build-mode: none` |
 | `scorecard.yml` | pushes to `main`, weekly | OpenSSF Scorecard, published, with SARIF to code scanning |
 | `pr-title.yml` (job `PR title`) | pull request opened, edited, synchronized or reopened | the title follows Conventional Commits with a required scope ([README](README.md#git)) |
@@ -28,6 +28,7 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - No `pull_request_target`: there are no fork pull requests, and `pull_request` needs no write token.
 - Issues are opened with `gh` and `issues: write`, not with third-party actions.
 - Each job has a `timeout-minutes`.
+- Each job runs on a fixed Ubuntu label (`ubuntu-24.04`), not `ubuntu-latest`, which GitHub moves to each new image over several weeks; runner-images suggests a fixed label "to avoid unwanted migration". Moving to a newer image is its own pull request.
 
 ## The CI job
 
@@ -54,4 +55,4 @@ Publishing results restricts the workflow: no `env` or `defaults`, no `run` step
 - Security updates are enabled by the user in the repository settings; they ignore the cooldown.
 - uv's `required-version` did not stop Dependabot's uv updates (checked on the first one, 2026-11-10, when it was in `backend/pyproject.toml`; it is now in the root `pyproject.toml`, see [repository.md](repository.md#known-limitations-and-risks-to-revisit)).
 - An update that the project's decisions rule out goes in `ignore`, with a comment pointing to the decision.
-- mise is not a Dependabot ecosystem. `tool-updates.yml` reminds monthly to run `just update-tools`, which runs `mise upgrade --bump`: mise's own `minimum_release_age = "7d"` (in `mise.toml`, checked in mise's settings reference) keeps the same cooldown. Nothing updates three pins, so the reminder lists them: mise's version in `ci.yml` and `release.yml`, uv's `required-version` in the root `pyproject.toml`, and Python's exact version in `.python-version`.
+- mise is not a Dependabot ecosystem. `tool-updates.yml` reminds monthly to run `just update-tools`, which runs `mise upgrade --bump`: mise's own `minimum_release_age = "7d"` (in `mise.toml`, checked in mise's settings reference) keeps the same cooldown. Nothing updates four pins, so the reminder lists them: mise's version in `ci.yml` and `release.yml`, the Ubuntu runner label in every workflow, uv's `required-version` in the root `pyproject.toml`, and Python's exact version in `.python-version`.
