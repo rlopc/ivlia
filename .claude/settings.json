@@ -6,7 +6,7 @@
       "Bash(just *)",
       "Bash(mise exec -- just *)",
       "Bash(uv run --locked *)",
-      "Bash(uv sync --locked*)",
+      "Bash(uv sync --locked --all-packages*)",
       "Bash(pnpm install --frozen-lockfile*)",
       "Bash(pnpm exec *)",
       "Bash(pnpm run *)",
