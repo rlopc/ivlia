@@ -48,7 +48,7 @@ Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `D
 Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit. Every hook is local (`language: unsupported`), so pre-commit builds no environments and pre-commit-uv is not needed.
 
 - Rule: every hook is local and runs a tool with a lockfile, at the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation). There are no remote hooks, so Dependabot has nothing to update here.
-  - gitleaks, actionlint, zizmor and shellcheck: installed by mise (binaries whose checksums `mise.lock` records). zizmor and shellcheck keep the `files`, `types` and `require_serial` of their upstream hooks. shellcheck on `PATH` also lets actionlint check the workflows' `run:` scripts.
+  - gitleaks, actionlint, zizmor and shellcheck: installed by mise (binaries whose checksums `mise.lock` records). zizmor and shellcheck keep the `files`, `types` and `require_serial` of their upstream hooks; zizmor adds `--offline`, so it never uses the network locally. shellcheck on `PATH` also lets actionlint check the workflows' `run:` scripts.
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
 - Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/`), and Prettier on every file, as `just fix` does (`--ignore-unknown` and `.prettierignore` decide).
@@ -59,7 +59,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 
 - Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)). `.jsonc` files get no trailing commas, which VS Code flags.
 - markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc), each with its reason: line length and first-line-heading rules off, duplicate headings allowed between non-siblings. Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
-- shellcheck: SC2016 is disabled only in `.claude/hooks/researcher-bash-guard.test.sh`, with a reason (literal test commands).
+- shellcheck: SC2016 is disabled only in the two `.claude/hooks/*.test.sh`, with a reason (literal test commands and files).
 
 ## Generated files
 
@@ -83,7 +83,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 ## Link checking
 
-`just check-links` runs lychee on the versioned Markdown files (`git ls-files`, the files pre-commit sees), with its options in [lychee.toml](../../lychee.toml) (anchors included). `just check` runs it with `--offline`, for local links and anchors; `links.yml` runs it online, with the lychee of `mise.lock`. A glob is not used: lychee skips hidden folders (`.claude/`, `.github/`) and does not read nested `.gitignore` files. markdownlint's MD051 also checks anchors within the same file; it stays on because it reports them in the editor, which lychee does not. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
+`just check-links` runs lychee on the versioned Markdown files (`git ls-files`, the files pre-commit sees), with its options in [lychee.toml](../../lychee.toml) (anchors included; generated files skipped, as markdownlint skips them). `just check` runs it with `--offline`, for local links and anchors; `links.yml` runs it online, with the lychee of `mise.lock`. A glob is not used: lychee skips hidden folders (`.claude/`, `.github/`) and does not read nested `.gitignore` files. markdownlint's MD051 also checks anchors within the same file; it stays on because it reports them in the editor, which lychee does not. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
 
 ## Repository files
 
