@@ -51,13 +51,14 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
   - gitleaks, actionlint, zizmor and shellcheck: installed by mise (binaries whose checksums `mise.lock` records). zizmor and shellcheck keep the `files`, `types` and `require_serial` of their upstream hooks; zizmor adds `--offline`, so it never uses the network locally. shellcheck on `PATH` also lets actionlint check the workflows' `run:` scripts.
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
-- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/`), and Prettier on every file, as `just fix` does (`--ignore-unknown` and `.prettierignore` decide).
+- Hooks: pre-commit-hooks' commit checks (`check-added-large-files`, default 500 kB, new files only; `check-case-conflict`, because macOS ignores case and CI does not; `check-merge-conflict`), its `end-of-file-fixer` and `trailing-whitespace` on the text files no formatter owns (see [formatting](#formatting)), gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/`), and Prettier on every file, as `just fix` does (`--ignore-unknown` and `.prettierignore` decide).
 - A hook that changes files fails that run; running `just check` again passes.
 - `minimum_pre_commit_version` is set. prek is not used: it is still 0.x; revisit at 1.0.
 
 ## Formatting
 
 - Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)). `.jsonc` files get no trailing commas, which VS Code flags.
+- Text files that no formatter owns (TOML, shell, SQL, `justfile`, the ignore files, `.python-version`): pre-commit-hooks' `end-of-file-fixer` and `trailing-whitespace`, through `uv run --locked` (it is a root dev dependency). One `files` pattern in `.pre-commit-config.yaml` (`*unowned`), kept in sync with the lint hook. `LICENSE` is left out: its text is copied verbatim.
 - markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc), each with its reason: line length and first-line-heading rules off, duplicate headings allowed between non-siblings. Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
 - shellcheck: SC2016 is disabled only in the two `.claude/hooks/*.test.sh`, with a reason (literal test commands and files).
 

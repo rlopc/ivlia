@@ -98,6 +98,12 @@ printf '#!/usr/bin/env fish\necho $argv\n' >"$root/fish-script"
 chmod +x "$root/fish-script"
 check "fish script" 0 "$root/fish-script"
 
+# Text files no formatter owns: end-of-file-fixer and trailing-whitespace-fixer.
+printf 'a = 1   \nb = 2' >"$root/fixable.toml"
+check "unowned text fixable" 0 "$root/fixable.toml"
+[[ $(cat "$root/fixable.toml") == $'a = 1\nb = 2' && $(tail -c 1 "$root/fixable.toml" | od -An -c | tr -d ' ') == '\n' ]] ||
+  fail "unowned text file was not fixed: $(cat "$root/fixable.toml")"
+
 # Workflows: zizmor (security) and actionlint (syntax), each on its own case.
 # workflow_dispatch: no third-party trigger, even if a leftover reached git.
 printf 'on: workflow_dispatch\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - run: echo "${{ github.event.issue.title }}"\n' >"$workflow-injection.yml"

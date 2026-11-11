@@ -36,6 +36,7 @@ Enabled in the same file (`sandbox`):
 
 - PreToolUse on Bash: `researcher-bash-guard.py` limits the read-only Bash of the `researcher` agent; its test (`.claude/hooks/researcher-bash-guard.test.sh`) runs in `just check`.
 - PostToolUse on `Edit` and `Write`: `lint-after-edit.py` formats and lints each file Claude edits with pre-commit's file tools (same order and ignore files), so problems are reported while writing ([repository.md](repository.md)). Through `mise exec`, from the root, with the path relative to it:
+  - Text files that no formatter owns: `end-of-file-fixer` and `trailing-whitespace-fixer` (their exit code 1 means they fixed the file, not an error).
   - GitHub Actions files: zizmor (`--offline`), and actionlint for workflows.
   - Shell scripts: shellcheck.
   - Markdown: `markdownlint-cli2 --fix`.
@@ -45,7 +46,7 @@ Enabled in the same file (`sandbox`):
   - Any file: Prettier with `--ignore-unknown`.
   - `frontend/**/*.ts(x)`: `eslint --fix`.
 
-  gitleaks is not in the hook: it scans what is staged, at commit. Generated code is skipped by the tools' ignore files. Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Files outside the repository are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch folders in `backend/`, `frontend/src/` and the root, the last two neither hidden nor gitignored, because TypeScript, Prettier and markdownlint skip those, and two workflows in `.github/workflows/` itself, where zizmor and actionlint look; all are removed on exit. The first version was checked in a live session on 2026-11-10, and the current one on 2026-11-11 (markdownlint, shellcheck and zizmor each reported an error back to Claude).
+  gitleaks and pre-commit-hooks' commit checks (large files, case and merge conflicts) are not in the hook: they check the commit, not one file. Generated code is skipped by the tools' ignore files. Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Files outside the repository are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch folders in `backend/`, `frontend/src/` and the root, the last two neither hidden nor gitignored, because TypeScript, Prettier and markdownlint skip those, and two workflows in `.github/workflows/` itself, where zizmor and actionlint look; all are removed on exit. The first version was checked in a live session on 2026-11-10, and the current one on 2026-11-11 (markdownlint, shellcheck and zizmor each reported an error back to Claude).
 - Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
 
 ## Validar

@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 license = "AGPL-3.0-or-later"
 
 [dependency-groups]
-dev = ["pre-commit==4.7.0"]
+dev = ["pre-commit==4.7.0", "pre-commit-hooks==6.0.0"]
 
 # uv reads [tool.uv] only here, for every member.
 [tool.uv]
