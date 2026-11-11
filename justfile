@@ -31,9 +31,14 @@ check:
     .claude/hooks/researcher-bash-guard.test.sh
     .claude/hooks/lint-after-edit.test.sh
     pnpm exec openspec validate --all --strict
-    lychee --offline --include-fragments --no-progress --exclude-path node_modules --exclude-path .dev '**/*.md'
+    just check-links --offline
     just check-backend
     just check-frontend
+
+# Links and anchors in every versioned Markdown file, the files pre-commit sees.
+# Options are in lychee.toml; `check` adds --offline, links.yml checks online.
+check-links *args:
+    git ls-files '*.md' | lychee --files-from - {{ args }}
 
 # Backend checks. ruff runs as a pre-commit hook in `check`. --locked: never rewrite uv.lock.
 [working-directory: 'backend']

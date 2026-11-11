@@ -1,6 +1,6 @@
-# Weekly check of external links. Internal links and anchors are checked
-# offline by `just check`. On failure it opens an issue, or comments on the
-# one already open.
+# Weekly check of external links, with `just check-links`: the same lychee
+# (mise.lock), options (lychee.toml) and files as `just check`, which checks
+# offline. On failure it opens an issue, or comments on the one already open.
 name: Links
 
 on:
@@ -21,16 +21,30 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - id: lychee
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+      # Only mise itself, as in ci.yml; then only the two tools this job uses.
+      - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
-          args: >-
-            --no-progress --include-fragments
-            --exclude-path node_modules --exclude-path .dev
-            '**/*.md'
-          output: lychee/report.md
-          jobSummary: true
-          fail: false
+          # Same mise as on the Mac: mise.lock is format 4, which needs it.
+          # Cooldown exception until 2026-11-16 (docs/standards/README.md).
+          version: 2026.11.5
+          install: false
+      - run: mise install just lychee
+        env:
+          # Read-only; avoids GitHub API rate limits on shared runners.
+          GITHUB_TOKEN: ${{ github.token }}
+      # A broken link does not fail the job: the next step reports it.
+      - id: lychee
+        env:
+          # lychee uses it for github.com links, to avoid rate limits.
+          GITHUB_TOKEN: ${{ github.token }}
+          # Install nothing else of mise.toml.
+          MISE_EXEC_AUTO_INSTALL: "false"
+        run: |
+          mkdir -p lychee
+          status=0
+          mise exec -- just check-links --format markdown --output lychee/report.md || status=$?
+          cat lychee/report.md >> "$GITHUB_STEP_SUMMARY"
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
       - name: Open or update the issue
         if: steps.lychee.outputs.exit_code != 0
         env:

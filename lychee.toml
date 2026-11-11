@@ -1,0 +1,4 @@
+# lychee options for `just check-links`: offline in `just check`, online in
+# links.yml. The justfile passes the files: every versioned Markdown file.
+include_fragments = "full"
+no_progress = true

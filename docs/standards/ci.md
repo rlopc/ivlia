@@ -10,7 +10,7 @@ GitHub Actions in [.github/workflows/](../../.github/workflows/) and Dependabot 
 | `codeql.yml` (jobs `analyze (…)`) | pull requests, pushes to `main`, weekly | CodeQL advanced setup for `actions`, `javascript-typescript` and `python`, `build-mode: none` |
 | `scorecard.yml` | pushes to `main`, weekly | OpenSSF Scorecard, published, with SARIF to code scanning |
 | `pr-title.yml` (job `PR title`) | pull request opened, edited, synchronized or reopened | the title follows Conventional Commits with a required scope ([README](README.md#git)) |
-| `links.yml` | weekly, manual | external links with lychee; on failure, opens the "Broken external links" issue or comments on the open one |
+| `links.yml` | weekly, manual | external links with `just check-links` (lychee from `mise.lock`, not lychee-action); on failure, opens the "Broken external links" issue or comments on the open one |
 | `release.yml` | pushes to `main` | release-please, `uv lock` on the release PR, and the release assets ([release.md](release.md)) |
 | `tool-updates.yml` | monthly, manual | opens the "Update the tools in mise.toml" issue or comments on the open one |
 

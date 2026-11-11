@@ -19,7 +19,8 @@ Each file type has one formatter. Checks run as early as possible: in the editor
 Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"` (cooldown for the pre-commit environments), `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
 
 - `just setup`: `mise install`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked` for `backend/`, `pre-commit install` and `pre-commit install-hooks`. Uses the network; the only recipe that installs.
-- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, the offline link check, `just check-backend` and `just check-frontend`.
+- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
+- `just check-links`: lychee on every versioned Markdown file ([link checking](#link-checking)); extra arguments go to lychee.
 - `just check-backend`: mypy, import-linter, and the tests under coverage with its two reports ([backend.md](backend.md#tests-and-coverage)). All through `uv run --locked`. ruff runs in pre-commit.
 - `just check-frontend`: the contract check, ESLint, knip, Vitest with coverage, the build (`tsc -b`, then `vite build`) and Playwright ([frontend.md](frontend.md)). Prettier runs in pre-commit. Playwright starts a server and a browser, so it runs outside Claude Code's sandbox.
 - `just contract`: exports the event contract and the OpenAPI document, and generates the frontend's types and validator ([api.md](api.md#export)).
@@ -70,7 +71,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 ## Link checking
 
-`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. markdownlint's MD051 also checks anchors within the same file; it stays on because it reports them in the editor, which lychee does not. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
+`just check-links` runs lychee on the versioned Markdown files (`git ls-files`, the files pre-commit sees), with its options in [lychee.toml](../../lychee.toml) (anchors included). `just check` runs it with `--offline`, for local links and anchors; `links.yml` runs it online, with the lychee of `mise.lock`. A glob is not used: lychee skips hidden folders (`.claude/`, `.github/`) and does not read nested `.gitignore` files. markdownlint's MD051 also checks anchors within the same file; it stays on because it reports them in the editor, which lychee does not. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
 
 ## Repository files
 
