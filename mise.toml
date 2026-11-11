@@ -13,6 +13,9 @@ just = "1.59.0"
 lychee = "0.24.2"
 gitleaks = "8.30.1"
 actionlint = "1.7.12"
+# On PATH, so actionlint also checks the `run:` scripts of the workflows.
+shellcheck = "0.11.0"
+zizmor = "1.32.0"
 "pipx:pre-commit" = { version = "4.7.0", with = ["pre-commit-uv==4.4.1"] }
 
 [env]

@@ -1,21 +1,28 @@
-# Tools that have a lockfile (mise.lock, pnpm-lock.yaml, backend/uv.lock) run
-# as local hooks with the locked version, through `mise exec` so they work even
-# where mise is not activated (IDEs, git GUIs). The rest are pinned by revision.
+# Every hook is local and runs a tool locked by mise.lock, pnpm-lock.yaml or
+# backend/uv.lock, through `mise exec` so it works even where mise is not
+# activated (IDEs, git GUIs).
 minimum_pre_commit_version: "4.5.0"
 
 repos:
-  - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.32.0
-    hooks:
-      - id: zizmor
-
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
-      - id: shellcheck
-
   - repo: local
     hooks:
+      # files, require_serial and --no-progress as in zizmor's own hook.
+      - id: zizmor
+        name: zizmor
+        entry: mise exec -- zizmor --no-progress
+        language: unsupported
+        types: [yaml]
+        files: (^|/)(\.github/(workflows/[^/]+|dependabot)\.ya?ml|action\.ya?ml|\.pre-commit-(config|hooks)\.ya?ml)$
+        require_serial: true
+
+      # require_serial as in shellcheck-py's hook: shellcheck can follow `source`.
+      - id: shellcheck
+        name: shellcheck
+        entry: mise exec -- shellcheck
+        language: unsupported
+        types: [shell]
+        require_serial: true
+
       - id: gitleaks
         name: gitleaks
         entry: mise exec -- gitleaks git --pre-commit --redact --staged --no-banner

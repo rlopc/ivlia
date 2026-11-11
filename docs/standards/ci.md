@@ -48,7 +48,6 @@ Publishing results restricts the workflow: no `env` or `defaults`, no `run` step
 | `uv` | `/backend` | `pyproject.toml`, `uv.lock` |
 | `npm` | `/` | the pnpm workspace (root and `frontend/`), `pnpm-lock.yaml`; TypeScript majors are ignored while typescript-eslint does not support them |
 | `github-actions` | `/` | the workflows' SHAs and version comments |
-| `pre-commit` | `/` | `rev` in `.pre-commit-config.yaml` |
 
 - Weekly, with `cooldown: default-days: 7`, the same cooldown as uv, pnpm and mise ([README](README.md#versions-policy)). No groups.
 - Titles: `prefix` and `prefix-development` `build(deps)` give `build(deps): bump …`, which the title check accepts (checked on the first Dependabot PRs, 2026-11-10). `include: "scope"` is not used: it would give `build(deps-dev)`, a scope the check rejects.
