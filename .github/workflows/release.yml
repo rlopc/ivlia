@@ -39,7 +39,7 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   # release-please bumps the version in backend/pyproject.toml, but two
-  # generated files also carry it: backend/uv.lock (the project's own entry)
+  # generated files also carry it: uv.lock (the project's own entry)
   # and backend/schemas/openapi.json (`info.version`). This job regenerates
   # them with their own commands, so the release PR passes `just check`. It
   # runs after every release-please pass, because each pass rewrites the
@@ -93,16 +93,16 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           mise install uv
-          mise exec -- uv lock --project backend
+          mise exec -- uv lock
           # The backend half of `just contract`; the frontend's contract
           # does not depend on the version.
           (cd backend && mise exec -- uv run --locked python -m ivlia.api.schemas schemas)
-          if git diff --quiet -- backend/uv.lock backend/schemas; then
+          if git diff --quiet -- uv.lock backend/schemas; then
             exit 0
           fi
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
-          git commit --message "chore(repo): regenerate the version-derived files" -- backend/uv.lock backend/schemas
+          git commit --message "chore(repo): regenerate the version-derived files" -- uv.lock backend/schemas
           git push "https://x-access-token:${TOKEN}@github.com/${GH_REPO}.git" "HEAD:${BRANCH}"
 
   publish:

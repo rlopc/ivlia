@@ -5,10 +5,8 @@
 # Dev installation data, Validar reports and review diffs
 .dev/
 
-# mise local state, except the lockfiles of dependency-graph tools (pre-commit),
-# which mise needs to install them and which hold their checksums
-.mise/*
-!.mise/locks/
+# mise local state
+.mise/
 
 # Python
 .venv/

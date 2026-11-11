@@ -32,6 +32,8 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | `pnpm audit` in CI fails on high and critical advisories; fixes that a dependency has not released go in pnpm `overrides` | Final | — | [ci.md](../standards/ci.md#the-ci-job) |
 | mise tools updated by `just update-tools` and a monthly reminder issue, not Dependabot | Provisional | When Dependabot supports mise | [ci.md](../standards/ci.md#dependabot) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |
+| uv workspace at the root (replaces the simple uv project in `backend/`): one `uv.lock`, `.venv` and `.python-version`; pre-commit is a root dev dependency, not a mise tool, so its dependencies are locked and `mise install --locked` works | Provisional | Dependabot's first run on the workspace | [repository.md](../standards/repository.md#tool-versions) |
+| Python installed by uv, not mise: uv prefers its own Python over one on `PATH` (checked 2026-11-11) | Final | — | [repository.md](../standards/repository.md#tool-versions) |
 | pnpm pinned in `mise.toml`, not in `packageManager`, so `pnpm-lock.yaml` is one YAML document that the dependency graph reads | Provisional | When GitHub's dependency graph reads two-document pnpm lockfiles | [repository.md](../standards/repository.md#tool-versions) |
 | No Zod for the contract: generated TypeScript types and an Ajv validator | Provisional | When the first form arrives | [api.md](../standards/api.md#frontend-types-and-validator) |
 | Chat built from assistant-ui's primitives inside the chat adapter, not its styled registry components | Provisional | The assistant-ui spike before slice 6 | [frontend.md](../standards/frontend.md#chat-ui) |

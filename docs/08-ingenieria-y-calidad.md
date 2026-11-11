@@ -21,7 +21,7 @@ Cada una se elige en el paso Validar de la fase 0 que corresponda y la elección
 
 | Necesidad | Origen | Candidatos |
 | --- | --- | --- |
-| Versiones de Python y Node | Entorno reproducible | `.python-version` (uv); mise o `engines` en `package.json` para Node |
+| Versiones de Python y Node | Entorno reproducible | `.python-version` en la raíz del workspace de uv; mise para Node |
 | Migraciones de SQLite | «01 Visión y alcance»: base de datos con su migración inicial | Alembic, o scripts SQL numerados con `PRAGMA user_version` |
 | Tipos de TypeScript generados del JSON Schema | «02 Arquitectura e interfaces»: contrato único | json-schema-to-typescript o json-schema-to-zod |
 | Comprobación de Markdown y enlaces | «09 IA en el desarrollo»: la CI valida el Markdown y los enlaces | markdownlint-cli2 y lychee |

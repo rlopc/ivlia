@@ -27,9 +27,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Only mise itself: the action would install with --locked, which fails
-      # for pre-commit (pipx backend, no lockfile URL). `mise install` below
-      # runs as `just setup` does locally.
+      # Only mise itself; `mise install --locked` below runs as `just setup`
+      # does locally, with the job's token.
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
           # Same mise as on the Mac: mise.lock is format 4, which needs it.
@@ -37,7 +36,7 @@ jobs:
           version: 2026.11.5
           install: false
 
-      - run: mise install
+      - run: mise install --locked
         env:
           # Read-only; avoids GitHub API rate limits on shared runners.
           GITHUB_TOKEN: ${{ github.token }}
@@ -53,7 +52,7 @@ jobs:
           path: |
             ${{ steps.cache-paths.outputs.pnpm }}
             ${{ steps.cache-paths.outputs.uv }}
-          key: deps-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'backend/uv.lock') }}
+          key: deps-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'uv.lock') }}
           restore-keys: deps-${{ runner.os }}-
 
       - run: just setup

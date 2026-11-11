@@ -1,5 +1,5 @@
-# Tool versions for development and CI. Python is pinned by uv in
-# backend/.python-version.
+# Tool versions for development and CI. Python and pre-commit are not here: uv
+# installs them (.python-version and uv.lock at the root).
 # mise.lock uses lockfile format 4; older mise fails to read it.
 min_version = "2026.11.5"
 
@@ -16,8 +16,6 @@ actionlint = "1.7.12"
 # On PATH, so actionlint also checks the `run:` scripts of the workflows.
 shellcheck = "0.11.0"
 zizmor = "1.32.0"
-# No pre-commit-uv: every hook is local, so pre-commit builds no environments.
-"pipx:pre-commit" = "4.7.0"
 
 [env]
 # The dev installation: its data stays in the repo's gitignored .dev/ folder.

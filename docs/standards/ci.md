@@ -6,7 +6,7 @@ GitHub Actions in [.github/workflows/](../../.github/workflows/) and Dependabot 
 
 | Workflow | When | What |
 | --- | --- | --- |
-| `ci.yml` (job `just check`) | pull requests to `main`, pushes to `main` | `mise install`, `just setup`, Playwright's system packages, `just check`, `pnpm audit --audit-level high` |
+| `ci.yml` (job `just check`) | pull requests to `main`, pushes to `main` | `mise install --locked`, `just setup`, Playwright's system packages, `just check`, `pnpm audit --audit-level high` |
 | `codeql.yml` (jobs `analyze (…)`) | pull requests, pushes to `main`, weekly | CodeQL advanced setup for `actions`, `javascript-typescript` and `python`, `build-mode: none` |
 | `scorecard.yml` | pushes to `main`, weekly | OpenSSF Scorecard, published, with SARIF to code scanning |
 | `pr-title.yml` (job `PR title`) | pull request opened, edited, synchronized or reopened | the title follows Conventional Commits with a required scope ([README](README.md#git)) |
@@ -31,7 +31,7 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 
 ## The CI job
 
-- mise-action installs mise only (`install: false`), the same version as on the Mac, verified against its signed checksums; a `mise install` step installs the tools, with the job's read-only token to avoid GitHub API rate limits. The action would add `--locked`, which fails for pre-commit (pipx backend; see [repository.md](repository.md#known-limitations-and-risks-to-revisit)). pre-commit installs from its versioned dependency lock in `.mise/locks/`.
+- mise-action installs mise only (`install: false`), the same version as on the Mac, verified against its signed checksums; a `mise install --locked` step installs the tools, with the job's read-only token to avoid GitHub API rate limits.
 - Checkout with `fetch-depth: 0`, because gitleaks scans the whole history.
 - Two caches: mise-action's own, of the installed tools (on by default, renewed every 30 days), and one `actions/cache` for the pnpm store, the uv cache and pre-commit's environments, keyed on their lockfiles and config. `uv cache prune --ci` keeps the uv part small. Playwright's browser is not cached, as Playwright advises; its system packages are installed on each run.
 - No cache in the release workflow: a poisoned cache must never reach a published artifact.
@@ -45,7 +45,7 @@ Publishing results restricts the workflow: no `env` or `defaults`, no `run` step
 
 | Ecosystem | Directory | Updates |
 | --- | --- | --- |
-| `uv` | `/backend` | `pyproject.toml`, `uv.lock` |
+| `uv` | `/` | the uv workspace (root and `backend/`): both `pyproject.toml`, `uv.lock` |
 | `npm` | `/` | the pnpm workspace (root and `frontend/`), `pnpm-lock.yaml`; TypeScript majors are ignored while typescript-eslint does not support them |
 | `github-actions` | `/` | the workflows' SHAs and version comments |
 
