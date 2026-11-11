@@ -1,8 +1,20 @@
 # Repository
 
-Every tool behaves the same in the editor, the terminal, pre-commit and CI: its configuration lives only in the tool's versioned config file, and its version comes from the lockfiles. Editor settings only point to those; an editor tool that cannot is turned off.
+## Toolchain rules
 
-Each file type has one formatter. Checks run as early as possible: in the editor, in pre-commit and in CI, with the same tool and configuration. Two tools may check the same thing only when one of them reports it earlier.
+Every development tool meets these rules. Review a tool against them whenever it is added, upgraded or reconfigured.
+
+- **Same everywhere**: a tool behaves the same in the editor, Claude Code's hooks, the terminal, pre-commit and CI. Its configuration lives only in its versioned config file; editor settings only point to it, and an editor tool that cannot is turned off.
+- **One owner**: each file type has one formatter, and each check one tool. Two tools may check the same thing only when one of them reports it earlier.
+- **Early feedback**: checks run as early as possible: while writing, then at commit, then in CI. Fast checks run first; slow ones in `just check` and CI.
+- **Clear scope**: each tool states which files it covers and which it skips. The files it sees are the versioned ones, and generated files are skipped by every tool.
+- **Consistent**: code, configuration and documentation say the same thing ([documentation rule](README.md#documentation-rule)).
+- **Reproducible**: exact versions from the lockfiles, with checksums where the tool allows it; actions pinned by commit SHA. It works on macOS arm64 and Linux x64, also where mise is not activated.
+- **Up to date**: current releases within the [versions policy](README.md#versions-policy).
+- **Proven**: each check is shown to fail on a bad input, not only to pass (hook tests, rules checked with a forbidden case).
+- **Least privilege**: a tool gets only the network, permissions and secrets it needs; local checks run offline.
+- **Best practice**: configured as its official documentation recommends; any deviation is written down with its reason.
+- **Minimal**: a tool is added only when no existing one covers the need.
 
 ## Tool versions
 
