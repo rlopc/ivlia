@@ -13,7 +13,7 @@ Design: [docs/09](../09-ia-en-el-desarrollo.md).
 
 In [.claude/settings.json](../../.claude/settings.json). Precedence: deny, then ask, then allow. They apply the rules of no history rewriting, no deletion and no dependency changes without permission.
 
-- Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked --all-packages` (a partial `uv sync` would remove part of the shared `.venv`, so it asks); `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only `gh pr view`, `gh pr diff`, `gh pr checks`, `gh run view`, `gh issue view`. Pinned downloads that `just check` makes (pre-commit environments) count as installs from a lockfile.
+- Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked --all-packages` (a partial `uv sync` would remove part of the shared `.venv`, so it asks); `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only `gh pr view`, `gh pr diff`, `gh pr checks`, `gh run view`, `gh issue view`. `just check` installs nothing: `uv run --locked` and `mise exec` use what `just setup` installed from `uv.lock` and `mise.lock`.
 - Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `git rm`; `rm`; `curl` and `wget`; every other `gh` command; web tools.
 - Deny: `git push --force` (also `-f` and `--force-with-lease`), `gh pr merge`, any push to `main`, and reading the use installation folder (`~/Library/Application Support/ivlia`) and the secret folders listed in the file.
 - Allow, ask and deny rules match the command text and can be bypassed. The real guards are the GitHub ruleset on `main` ([repository.md](repository.md#github)) and the sandbox.
@@ -37,8 +37,10 @@ Enabled in the same file (`sandbox`):
 - PreToolUse on Bash: `researcher-bash-guard.py` limits the read-only Bash of the `researcher` agent; its test (`.claude/hooks/researcher-bash-guard.test.sh`) runs in `just check`.
 - PostToolUse on `Edit` and `Write`: `lint-after-edit.py` formats and lints each file Claude edits with pre-commit's file tools (same order and ignore files), so problems are reported while writing ([repository.md](repository.md)). Through `mise exec`, from the root, with the path relative to it:
   - GitHub Actions files: zizmor (`--offline`), and actionlint for workflows.
-  - Shell scripts (`.sh`, `.bash` or a shell shebang): shellcheck.
-  - `*.md`: `markdownlint-cli2 --fix`.
+  - Shell scripts: shellcheck.
+  - Markdown: `markdownlint-cli2 --fix`.
+
+  File types come from identify (`uv run --locked identify-cli`), the library pre-commit uses for `types`, so a file is a shell script, YAML or Markdown exactly when it is for pre-commit (for example, a shebang counts only in an executable file).
   - `backend/**/*.py`: `ruff check --fix`, then `ruff format` (`uv run --locked`).
   - Any file: Prettier with `--ignore-unknown`.
   - `frontend/**/*.ts(x)`: `eslint --fix`.

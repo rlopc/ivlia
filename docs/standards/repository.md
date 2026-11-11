@@ -24,7 +24,7 @@ Every development tool meets these rules. Review a tool against them whenever it
 - The root is a uv workspace ([pyproject.toml](../../pyproject.toml)), as the pnpm workspace is for Node: a non-package root (`package = false`) that holds the repository's Python tools, with `backend/` as its member. One `uv.lock`, one `.venv` and one `.python-version` at the root. uv reads `[tool.uv]` (`required-version`, `exclude-newer`) only from the root.
 - pre-commit is a dev dependency of the root, locked with hashes in `uv.lock`. `just setup` installs everything with `uv sync --locked --all-packages`: a plain `uv sync` is exact and installs one part only (in `backend/` it removes pre-commit). `uv run` does not remove packages, so the recipes do not have this problem.
 - The root pnpm workspace ([pnpm-workspace.yaml](../../pnpm-workspace.yaml)) holds Prettier, markdownlint-cli2 and OpenSpec as exact dev dependencies, with a single `pnpm-lock.yaml`. `frontend/` is its other package ([frontend.md](frontend.md)).
-- `.mise/` (mise local state) is gitignored. A fresh clone needs `mise trust` before `mise install`. `just setup` and CI install with `mise install --locked`: every tool has a URL and a checksum for both platforms in `mise.lock`.
+- `.mise/` (mise local state) is gitignored. A fresh clone needs `mise trust` before `mise install`. `just setup` and CI install with `mise install --locked`: every tool has a URL and a checksum for both platforms in `mise.lock`. `exec_auto_install = false`: `mise exec` never installs a missing tool on its own.
 - `[env]` in `mise.toml` also sets `IVLIA_ENV=dev` and `IVLIA_HOME=<repo>/.dev`, so any command in the repository uses the dev installation ([backend.md](backend.md#configuration)).
 
 ## `just` recipes
@@ -90,7 +90,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 - `README.md`, `SECURITY.md`, `CONTRIBUTING.md` and `LICENSE` at the root.
 - `.github/`: [pull request template](../../.github/pull_request_template.md) and issue forms (bug report, feature request) with blank issues disabled and a link to private security reporting.
 - No CODEOWNERS, Code of Conduct or DCO until contributions open.
-- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), mise's local state in `.mise/`, the backend scratch folders of the lint hook test, and build and cache outputs.
+- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), mise's local state in `.mise/`, the scratch files of the lint hook test (its backend folders and its temporary workflows), and build and cache outputs.
 
 ## License
 

@@ -16,7 +16,9 @@ backend="$(mktemp -d "$project/backend/.hook-test.XXXXXX")" || exit 1
 frontend="$(mktemp -d "$project/frontend/src/hook-test-XXXXXX")" || exit 1
 root="$(mktemp -d "$project/hook-test-XXXXXX")" || exit 1
 outside="$(mktemp -d "${TMPDIR:-/tmp}/lint-hook.XXXXXX")" || exit 1
-# Workflows must sit in .github/workflows/ itself, where zizmor and actionlint look.
+# Workflows must sit in .github/workflows/ itself, where zizmor and actionlint
+# look. Gitignored; leftovers of a killed run are removed first.
+rm -f "$project"/.github/workflows/hook-test-*.yml
 workflow="$project/.github/workflows/hook-test-$$"
 trap 'rm -rf "$backend" "$frontend" "$root" "$outside" "$workflow"-*.yml' EXIT
 stderr="$outside/stderr"
@@ -78,23 +80,36 @@ printf '# Title\n\n[link](#missing)\n' >"$root/broken.md"
 check "markdown unfixable" 2 "$root/broken.md"
 grep -q "MD051" "$stderr" || fail "markdown error not reported"
 
-# Shell: shellcheck, found by suffix and by shebang; a clean script passes.
+# Shell, as identify (pre-commit's `types`) sees it: by suffix, or by the
+# shebang of an executable file. A clean script passes.
 printf '#!/usr/bin/env bash\necho "$1"\n' >"$root/clean.sh"
 check "shell clean" 0 "$root/clean.sh"
 printf '#!/usr/bin/env bash\necho $1\n' >"$root/broken.sh"
 check "shell unfixable" 2 "$root/broken.sh"
 grep -q "SC2086" "$stderr" || fail "shell error not reported"
 printf '#!/usr/bin/env bash\necho $1\n' >"$root/broken-script"
+chmod +x "$root/broken-script"
 check "shell by shebang" 2 "$root/broken-script"
 grep -q "SC2086" "$stderr" || fail "shell error by shebang not reported"
+# Not shell for pre-commit either: a shebang without the executable bit, and fish.
+printf '#!/usr/bin/env bash\necho $1\n' >"$root/not-executable"
+check "shebang, not executable" 0 "$root/not-executable"
+printf '#!/usr/bin/env fish\necho $argv\n' >"$root/fish-script"
+chmod +x "$root/fish-script"
+check "fish script" 0 "$root/fish-script"
 
 # Workflows: zizmor (security) and actionlint (syntax), each on its own case.
-printf 'on: issues\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - run: echo "${{ github.event.issue.title }}"\n' >"$workflow-injection.yml"
+# workflow_dispatch: no third-party trigger, even if a leftover reached git.
+printf 'on: workflow_dispatch\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - run: echo "${{ github.event.issue.title }}"\n' >"$workflow-injection.yml"
 check "workflow zizmor" 2 "$workflow-injection.yml"
-grep -q "template-injection" "$stderr" || fail "zizmor error not reported"
+if ! { grep -q "^zizmor found errors" "$stderr" && grep -q "template-injection" "$stderr"; }; then
+  fail "zizmor error not reported: $(head -1 "$stderr")"
+fi
 printf 'on: push\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    foo: bar\n    steps:\n      - run: echo hi\n' >"$workflow-syntax.yml"
 check "workflow actionlint" 2 "$workflow-syntax.yml"
-grep -q "syntax-check" "$stderr" || fail "actionlint error not reported"
+if ! { grep -q "^actionlint found errors" "$stderr" && grep -q "syntax-check" "$stderr"; }; then
+  fail "actionlint error not reported: $(head -1 "$stderr")"
+fi
 
 # Ignored: generated files, files outside the repository, unknown types.
 for generated in "$project/frontend/src/contract/events.ts" "$project/CHANGELOG.md"; do

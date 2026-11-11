@@ -29,3 +29,6 @@ _.path = ["{{ config_root }}/node_modules/.bin"]
 minimum_release_age = "7d"
 lockfile = true
 lockfile_platforms = ["macos-arm64", "linux-x64"]
+# `mise exec` never installs a missing tool on its own (with the network): tools
+# are installed only by `just setup`, with `mise install --locked`.
+exec_auto_install = false

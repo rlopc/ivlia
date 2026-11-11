@@ -13,8 +13,10 @@
 __pycache__/
 .coverage
 .coverage.*
-# Scratch folders of the lint hook test (the frontend one must not be ignored)
+# Scratch files of the lint hook test (the frontend and root folders must not be
+# ignored; the workflows are passed to zizmor and actionlint by path)
 backend/.hook-test.*/
+/.github/workflows/hook-test-*.yml
 htmlcov/
 
 # Node
