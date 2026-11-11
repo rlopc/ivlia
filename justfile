@@ -1,8 +1,5 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# uv resolves the pre-commit environments with the same 7-day cooldown as the lockfiles.
-export UV_EXCLUDE_NEWER := "7 days"
-
 # Every recipe runs against the dev installation, never the real data.
 export IVLIA_ENV := "dev"
 export IVLIA_HOME := justfile_directory() / ".dev"

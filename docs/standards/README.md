@@ -41,10 +41,11 @@ The [PR template](../../.github/pull_request_template.md) lists these checks.
 
 ## Versions policy
 
-- Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and [backend/pyproject.toml](../../backend/pyproject.toml) with `backend/uv.lock`. Remote pre-commit hooks are pinned by revision in [.pre-commit-config.yaml](../../.pre-commit-config.yaml).
+- Tools and dependencies are pinned to exact versions, and every ecosystem has a lockfile: [mise.toml](../../mise.toml) with `mise.lock`, [package.json](../../package.json) with `pnpm-lock.yaml`, and [backend/pyproject.toml](../../backend/pyproject.toml) with `backend/uv.lock`. pre-commit has no remote hooks: each hook runs a tool locked in one of those lockfiles ([repository.md](repository.md#pre-commit)).
 - Cooldown: a version is used only when it is at least 7 days old.
   - mise: `minimum_release_age = "7d"` in [mise.toml](../../mise.toml), which `mise upgrade` (`just update-tools`) respects. CI pins mise itself to the same version as the Mac ([ci.md](ci.md#the-ci-job)), and `min_version` in `mise.toml` refuses an older one.
-  - uv: `UV_EXCLUDE_NEWER="7 days"` in the [justfile](../../justfile) and in `[env]` of [mise.toml](../../mise.toml) (pre-commit environments, also when a hook is set up outside `just` in a shell with mise activated); `exclude-newer = "7 days"` in [backend/pyproject.toml](../../backend/pyproject.toml).
+  - uv: `exclude-newer = "7 days"` in [backend/pyproject.toml](../../backend/pyproject.toml).
+  - pre-commit's own dependencies are locked in `.mise/locks/` by mise's pipx backend, with the same cooldown: `mise lock` on 2026-11-11 wrote `exclude-newer` exactly 7 days back. Observed, not documented by mise.
   - pnpm: `minimumReleaseAge: 10080` (minutes) in [pnpm-workspace.yaml](../../pnpm-workspace.yaml).
   - Dependabot: `cooldown: default-days: 7` in every ecosystem ([ci.md](ci.md#dependabot)).
 - mise's cooldown needs a release date: for a version without one, mise warns that it could not check it; read the warnings of `just update-tools`.

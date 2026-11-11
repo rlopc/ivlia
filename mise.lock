@@ -85,10 +85,7 @@ url = "https://nodejs.org/dist/v26.13.0/node-v26.13.0-darwin-arm64.tar.gz"
 version = "4.7.0"
 backend = "pipx:pre-commit"
 specifiers = ["4.7.0"]
-uv = { path = ".mise/locks/pipx-pre-commit/4.7.0~9774a0cf", digest = "sha256:2b05fcd3387120d3dc79967064e786466e2651eedabd50fa57cf4076a0d49f20" }
-
-[tools."pipx:pre-commit".options]
-with = '["pre-commit-uv==4.4.1"]'
+uv = { path = ".mise/locks/pipx-pre-commit/4.7.0", digest = "sha256:41a8ea2c08f23450db3b9765f0498bf25292f969382871e59a40fe0b7648ddc9" }
 
 [[tools.pnpm]]
 version = "12.17.0"

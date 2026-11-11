@@ -2,4 +2,4 @@
 name = "mise-pypi-tool-environment"
 version = "0.0.0"
 requires-python = ">=3.11"
-dependencies = ["pre-commit==4.7.0", "pre-commit-uv==4.4.1"]
+dependencies = ["pre-commit==4.7.0"]

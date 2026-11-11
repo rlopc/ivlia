@@ -26,10 +26,9 @@ jobs:
             which upgrades every tool to its newest release at least 7 days
             old and updates mise.lock, and read its warnings. Also check the
             pins nothing updates: mise's version in .github/workflows/ci.yml and
-            release.yml
-            (the same as the Mac's, and min_version in mise.toml),
-            pre-commit-uv in mise.toml and uv's required-version in
-            backend/pyproject.toml. Then open a `build(deps)` pull request.
+            release.yml (the same as the Mac's, and min_version in mise.toml),
+            and uv's required-version in backend/pyproject.toml. Then open a
+            `build(deps)` pull request.
         run: |
           number="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
             --jq "map(select(.title == env.TITLE)) | .[0].number // empty")"

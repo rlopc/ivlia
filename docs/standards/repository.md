@@ -18,7 +18,7 @@ Every development tool meets these rules. Review a tool against them whenever it
 
 ## Tool versions
 
-- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint, shellcheck, zizmor and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
+- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint, shellcheck, zizmor and pre-commit. `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
 - pnpm is pinned only in `mise.toml`, not in `packageManager` of `package.json`: with `packageManager`, pnpm 12 writes `pnpm-lock.yaml` as two YAML documents, which GitHub's dependency graph does not read, so Dependabot would raise no security alerts for JavaScript. Corepack is not used.
 - Python is not in mise: uv reads [backend/.python-version](../../backend/.python-version). Python dependencies: [backend.md](backend.md#project).
 - pre-commit is installed by mise's pipx backend, which uses uv. `mise.lock` stores its version, and `.mise/locks/pipx-pre-commit/` (versioned) its dependency graph: a `uv.lock` with the hash of every package. mise needs that folder to install it.
@@ -28,7 +28,7 @@ Every development tool meets these rules. Review a tool against them whenever it
 
 ## `just` recipes
 
-Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"` (cooldown for the pre-commit environments), `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
+Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
 
 - `just setup`: `mise install`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked` for `backend/`, `pre-commit install` and `pre-commit install-hooks`. Uses the network; the only recipe that installs.
 - `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
@@ -44,7 +44,7 @@ Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"
 
 ## Pre-commit
 
-Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit and pre-commit-uv.
+Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit. Every hook is local (`language: unsupported`), so pre-commit builds no environments and pre-commit-uv is not needed.
 
 - Rule: every hook is local and runs a tool with a lockfile, at the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation). There are no remote hooks, so Dependabot has nothing to update here.
   - gitleaks, actionlint, zizmor and shellcheck: installed by mise (binaries whose checksums `mise.lock` records). zizmor and shellcheck keep the `files`, `types` and `require_serial` of their upstream hooks. shellcheck on `PATH` also lets actionlint check the workflows' `run:` scripts.

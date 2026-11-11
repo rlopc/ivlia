@@ -53,8 +53,7 @@ jobs:
           path: |
             ${{ steps.cache-paths.outputs.pnpm }}
             ${{ steps.cache-paths.outputs.uv }}
-            ~/.cache/pre-commit
-          key: deps-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'backend/uv.lock', '.pre-commit-config.yaml') }}
+          key: deps-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'backend/uv.lock') }}
           restore-keys: deps-${{ runner.os }}-
 
       - run: just setup
