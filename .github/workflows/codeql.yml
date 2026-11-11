@@ -2,6 +2,9 @@
 name: CodeQL
 
 on:
+  # Only pull requests to main, as in GitHub's starter workflow: code scanning
+  # compares a pull request with its base branch's analysis, which only main
+  # has. Stacked pull requests are checked early by ci.yml.
   pull_request:
     branches: [main]
   push:
@@ -11,13 +14,18 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     name: analyze (${{ matrix.language }})
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # No actions: read; GitHub's starter workflow needs it only in private
+    # repositories.
     permissions:
-      actions: read
       contents: read
       security-events: write
     strategy:
@@ -32,6 +40,10 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: none
+          # Generated code, which every other tool skips too.
+          config: |
+            paths-ignore:
+              - frontend/src/contract
       - uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
         with:
           category: /language:${{ matrix.language }}
