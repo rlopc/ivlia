@@ -35,11 +35,13 @@ Enabled in the same file (`sandbox`):
 ## Hooks
 
 - PreToolUse on Bash: `researcher-bash-guard.py` limits the read-only Bash of the `researcher` agent; its test (`.claude/hooks/researcher-bash-guard.test.sh`) runs in `just check`.
-- PostToolUse on `Edit` and `Write`: `lint-after-edit.py` formats and lints each file Claude edits with the tools of its zone, through `mise exec`:
-  - `backend/**/*.py`: `ruff format`, then `ruff check --fix` (`uv run --locked`).
-  - `frontend/**`: Prettier (from the root, so `.prettierignore` applies), then `eslint --fix` for TypeScript. Generated code is skipped by the tools' ignore files.
+- PostToolUse on `Edit` and `Write`: `lint-after-edit.py` formats and lints each file Claude edits as pre-commit does (same tools, order and ignore files), so problems are reported while writing ([repository.md](repository.md)). Through `mise exec`, from the root, with the path relative to it:
+  - `*.md`: `markdownlint-cli2 --fix`.
+  - `backend/**/*.py`: `ruff check --fix`, then `ruff format` (`uv run --locked`).
+  - Any file: Prettier with `--ignore-unknown`.
+  - `frontend/**/*.ts(x)`: `eslint --fix`.
 
-  Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Other files are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch files inside each zone, the frontend one neither hidden nor gitignored, because TypeScript and Prettier skip those. Both parts were checked in a live session on 2026-11-10.
+  Generated code is skipped by the tools' ignore files. Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Files outside the repository are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch folders in `backend/`, `frontend/src/` and the root, the last two neither hidden nor gitignored, because TypeScript, Prettier and markdownlint skip those. The first version was checked in a live session on 2026-11-10; the current one only by its test.
 - Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
 
 ## Validar

@@ -1,12 +1,20 @@
-"""PostToolUse hook: format and lint each file Claude edits, with its zone's tools.
+"""PostToolUse hook: format and lint each file Claude edits, as pre-commit does.
 
-- backend/**/*.py: `ruff format`, then `ruff check --fix`, in the locked uv
-  environment.
-- frontend/**: Prettier, then (TypeScript only) `eslint --fix`. Both read the
-  repository's ignore files, so generated code is left alone.
+The same tools, order and ignore files as .pre-commit-config.yaml, so a problem
+is reported while writing, not at commit:
+
+- *.md: markdownlint-cli2 with --fix; .markdownlint-cli2.jsonc decides which
+  files it skips.
+- backend/**/*.py: `ruff check --fix`, then `ruff format` (Ruff's order), in
+  the locked uv environment.
+- Any file: Prettier with --ignore-unknown; .prettierignore decides.
+- frontend/**/*.ts(x): `eslint --fix`, as `just check-frontend` runs it.
+
+Paths are passed relative to the repository root, which is the working
+directory, as pre-commit does, so the ignore patterns match the same way.
 
 Errors that the tools cannot fix go back to Claude (exit 2), so it corrects
-them in the next step. Other files are ignored.
+them in the next step. Files outside the repository are ignored.
 
 Input: the hook JSON on stdin, with `tool_input.file_path`.
 """
@@ -17,7 +25,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-PRETTIER_SUFFIXES = {".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".html"}
 ESLINT_SUFFIXES = {".ts", ".tsx"}
 
 
@@ -31,28 +38,22 @@ def run(project: Path, *command: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def backend(project: Path, path: Path) -> list[tuple[str, list[str]]]:
-    if path.suffix != ".py":
-        return []
-    ruff = ["uv", "run", "--locked", "--quiet", "--project", "backend", "ruff"]
-    return [
-        ("ruff format", [*ruff, "format", "--quiet", str(path)]),
-        ("ruff check", [*ruff, "check", "--fix", "--quiet", "--output-format", "concise", str(path)]),
-    ]
-
-
-def frontend(project: Path, path: Path) -> list[tuple[str, list[str]]]:
-    steps = []
-    if path.suffix in PRETTIER_SUFFIXES:
-        # From the root, so the root .prettierignore applies.
-        steps.append(("prettier", ["pnpm", "exec", "prettier", "--write", "--log-level", "warn", str(path)]))
-    if path.suffix in ESLINT_SUFFIXES:
+def steps(path: Path) -> list[tuple[str, list[str]]]:
+    """The commands for a path relative to the repository root, in order."""
+    file, zone = str(path), path.parts[0]
+    result = []
+    if path.suffix == ".md":
+        result.append(("markdownlint", ["pnpm", "exec", "markdownlint-cli2", "--fix", file]))
+    if zone == "backend" and path.suffix == ".py":
+        ruff = ["uv", "run", "--locked", "--quiet", "--project", "backend", "ruff"]
+        result.append(("ruff check", [*ruff, "check", "--fix", "--quiet", "--output-format", "concise", file]))
+        result.append(("ruff format", [*ruff, "format", "--quiet", file]))
+    result.append(("prettier", ["pnpm", "exec", "prettier", "--write", "--ignore-unknown", "--log-level", "warn", file]))
+    if zone == "frontend" and path.suffix in ESLINT_SUFFIXES:
         eslint = ["pnpm", "--dir", "frontend", "exec", "eslint", "--fix", "--no-warn-ignored"]
-        steps.append(("eslint", [*eslint, str(path)]))
-    return steps
-
-
-ZONES = {"backend": backend, "frontend": frontend}
+        # ESLint runs in frontend/, so its path is relative to it.
+        result.append(("eslint", [*eslint, str(path.relative_to("frontend"))]))
+    return result
 
 
 def main() -> int:
@@ -62,13 +63,10 @@ def main() -> int:
     if not file_path:
         return 0
     path = Path(file_path).resolve()
-    if not path.is_relative_to(project) or not path.exists():
-        return 0
-    zone = ZONES.get(path.relative_to(project).parts[0])
-    if zone is None:
+    if not path.is_relative_to(project) or not path.is_file():
         return 0
 
-    for name, command in zone(project, path):
+    for name, command in steps(path.relative_to(project)):
         result = run(project, *command)
         if result.returncode != 0:
             sys.stderr.write(f"{name} found errors it cannot fix in {path}:\n{result.stdout}{result.stderr}")
