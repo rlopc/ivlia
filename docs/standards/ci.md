@@ -7,7 +7,7 @@ GitHub Actions in [.github/workflows/](../../.github/workflows/) and Dependabot 
 | Workflow | When | What |
 | --- | --- | --- |
 | `ci.yml` (job `just check`) | pull requests to any base branch (so stacked ones are checked early), pushes to `main` | `mise install --locked`, `just setup`, Playwright's system packages, `just check`, `pnpm audit --audit-level high` |
-| `codeql.yml` (jobs `analyze (…)`) | pull requests, pushes to `main`, weekly | CodeQL advanced setup for `actions`, `javascript-typescript` and `python`, `build-mode: none` |
+| `codeql.yml` (jobs `analyze (…)`) | pull requests to `main`, pushes to `main`, weekly | CodeQL advanced setup for `actions`, `javascript-typescript` and `python`, `build-mode: none` |
 | `scorecard.yml` | pushes to `main`, weekly | OpenSSF Scorecard, published, with SARIF to code scanning |
 | `pr-title.yml` (job `PR title`) | pull request opened, edited, synchronized or reopened | the title follows Conventional Commits with a required scope ([README](README.md#git)) |
 | `links.yml` | weekly, manual | external links with `just check-links` (lychee from `mise.lock`, not lychee-action); on failure, opens the "Broken external links" issue or comments on the open one |
@@ -28,7 +28,8 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - No `pull_request_target`: there are no fork pull requests, and `pull_request` needs no write token.
 - Issues are opened with `gh` and `issues: write`, not with third-party actions.
 - Each job has a `timeout-minutes`.
-- Each job runs on a fixed Ubuntu label (`ubuntu-24.04`), not `ubuntu-latest`, which GitHub moves to each new image over several weeks; runner-images suggests a fixed label "to avoid unwanted migration". Moving to a newer image is its own pull request.
+- Each job runs on a fixed Ubuntu label (`ubuntu-24.04`), not `ubuntu-latest`, which GitHub moves to each new image over several weeks; runner-images suggests a fixed label "to avoid unwanted migration". It is 24.04, the image the workflows were written against; 26.04 (GA since 2026-09-17) comes after the pending stacked pull requests, in its own pull request, as does any later image.
+- A stacked pull request retargeted to `main` gets no new run on its own (the base change is an `edited` event): merge `main` into its branch and push, so every required check runs against `main`.
 
 ## The CI job
 
@@ -40,7 +41,7 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 
 ## Scorecard
 
-Publishing results restricts the workflow: no `env` or `defaults`, no `run` steps, and only Scorecard's allowed actions (checkout, scorecard-action, upload-artifact, upload-sarif). `id-token: write` exists only in its job.
+Publishing results restricts the workflow: no `env` or `defaults`, no `run` steps, only Scorecard's allowed actions (checkout, scorecard-action, upload-artifact, upload-sarif), and a single GitHub-hosted Ubuntu runner label (the scorecard-action README; the last server code in ossf/scorecard-webapp accepts `ubuntu-latest` and `ubuntu-XX.YY` from 22.04, so `ubuntu-24.04` is expected to pass, to be confirmed on the first run on `main`). `id-token: write` exists only in its job.
 
 ## Dependabot
 
