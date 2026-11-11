@@ -40,7 +40,7 @@ Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `D
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
 - `just update-tools`: `mise upgrade --bump`, which upgrades every tool in `mise.toml` to its newest release at least 7 days old and updates `mise.lock`. Uses the network. `tool-updates.yml` reminds monthly ([ci.md](ci.md#dependabot)).
-- `just review-diff [base]`: writes the diff against `base` (default `main`; pass the parent branch of a stacked PR), passed to git as a positional argument so it is never shell code and the changed-file list to `.dev/review/` for the reviewer agent.
+- `just review-diff [base]`: writes the diff against `base` (default `main`; pass the parent branch of a stacked PR) and the changed-file list to `.dev/review/` for the reviewer agent. `base` reaches git as a positional argument after `--end-of-options`, so it is never shell code nor a git option.
 
 ## Pre-commit
 

@@ -85,9 +85,10 @@ update-tools:
     mise upgrade --bump
 
 # Write the branch diff against its base (main unless stacked) for the reviewer agent.
-# Positional arguments: the branch name reaches git as "$1", never as shell code.
+# Positional arguments: the branch name reaches git as "$1", never as shell code;
+# --end-of-options keeps git from reading it as an option.
 [positional-arguments]
 review-diff base="main":
     mkdir -p .dev/review
-    git diff "$1...HEAD" > .dev/review/diff.patch
-    git diff --name-status "$1...HEAD" > .dev/review/files.txt
+    git diff --end-of-options "$1...HEAD" > .dev/review/diff.patch
+    git diff --name-status --end-of-options "$1...HEAD" > .dev/review/files.txt
