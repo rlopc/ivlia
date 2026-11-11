@@ -1,5 +1,9 @@
 # Repository
 
+Every tool behaves the same in the editor, the terminal, pre-commit and CI: its configuration lives only in the tool's versioned config file, and its version comes from the lockfiles. Editor settings only point to those; an editor tool that cannot is turned off.
+
+Each file type has one formatter. Checks run as early as possible: in the editor, in pre-commit and in CI, with the same tool and configuration. Two tools may check the same thing only when one of them reports it earlier.
+
 ## Tool versions
 
 - [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
@@ -41,7 +45,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 
 ## Formatting
 
-- Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)).
+- Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)). `.jsonc` files get no trailing commas, which VS Code flags.
 - markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc) (line length and first-line-heading rules off; duplicate headings allowed between non-siblings, because `docs/04` has two "Fuentes" headings at different levels). Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
 - shellcheck: SC2016 is disabled only in `.claude/hooks/researcher-bash-guard.test.sh`, with a reason (literal test commands).
 
@@ -57,9 +61,16 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 `pnpm-lock.yaml` is one YAML document, which GitHub's dependency graph reads, because pnpm is not pinned in `packageManager` ([tool versions](#tool-versions)).
 
+## Editor
+
+[.vscode/extensions.json](../../.vscode/extensions.json) recommends the extensions that run the project's checks while writing: ESLint, Prettier, markdownlint, Ruff and Mypy, with the Python extension. [.vscode/settings.json](../../.vscode/settings.json) makes them follow the same checks:
+
+- The Mypy extension runs from the nearest `pyproject.toml` (`backend/`), so it reads the project's mypy configuration, and uses the project's mypy, not its bundled one.
+- Pylance type checking is off: mypy is the only type checker, in the terminal and in CI.
+
 ## Link checking
 
-`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
+`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. markdownlint's MD051 also checks anchors within the same file; it stays on because it reports them in the editor, which lychee does not. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
 
 ## Repository files
 

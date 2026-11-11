@@ -1,5 +1,9 @@
+// markdownlint rules. Which files are checked is set in .markdownlint-cli2.jsonc.
 {
+  // No line length limit.
   "MD013": false,
+  // Repeated headings are allowed unless they are siblings.
   "MD024": { "siblings_only": true },
+  // A file does not have to start with a top-level heading.
   "MD041": false
 }
