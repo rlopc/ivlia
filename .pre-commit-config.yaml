@@ -1,6 +1,6 @@
-# Tools that have a lockfile (mise.lock, pnpm-lock.yaml) run as local hooks
-# with the locked version, through `mise exec` so they work even where mise is
-# not activated (IDEs, git GUIs). The rest are pinned by revision.
+# Tools that have a lockfile (mise.lock, pnpm-lock.yaml, backend/uv.lock) run
+# as local hooks with the locked version, through `mise exec` so they work even
+# where mise is not activated (IDEs, git GUIs). The rest are pinned by revision.
 minimum_pre_commit_version: "4.5.0"
 
 repos:
@@ -34,20 +34,22 @@ repos:
         language: unsupported
         types: [markdown]
 
-      - id: ruff-format
-        name: ruff format
-        entry: mise exec -- uv run --locked --project backend ruff format
-        language: unsupported
-        files: ^backend/.*\.py$
-
+      # Lint before format: fixes can leave code that needs reformatting.
       - id: ruff-check
         name: ruff check
         entry: mise exec -- uv run --locked --project backend ruff check --fix
         language: unsupported
         files: ^backend/.*\.py$
 
+      - id: ruff-format
+        name: ruff format
+        entry: mise exec -- uv run --locked --project backend ruff format
+        language: unsupported
+        files: ^backend/.*\.py$
+
+      # Every file, as `just fix` does: --ignore-unknown and .prettierignore
+      # decide what Prettier formats.
       - id: prettier
         name: prettier
         entry: mise exec -- pnpm exec prettier --write --ignore-unknown
         language: unsupported
-        files: \.(js|mjs|cjs|ts|tsx|json|jsonc|ya?ml|css)$

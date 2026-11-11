@@ -35,7 +35,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
 - zizmor and shellcheck have no lockfile in the repository: they are remote hooks pinned by revision.
-- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff format and ruff check with `--fix` (Python in `backend/`), Prettier.
+- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/`), and Prettier on every file, as `just fix` does (`--ignore-unknown` and `.prettierignore` decide).
 - A hook that changes files fails that run; running `just check` again passes.
 - `minimum_pre_commit_version` is set. prek is not used: it is still 0.x; revisit at 1.0.
 
