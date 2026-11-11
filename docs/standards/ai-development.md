@@ -45,7 +45,7 @@ Enabled in the same file (`sandbox`):
   - Any file: Prettier with `--ignore-unknown`.
   - `frontend/**/*.ts(x)`: `eslint --fix`.
 
-  gitleaks is not in the hook: it scans what is staged, at commit. Generated code is skipped by the tools' ignore files. Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Files outside the repository are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch folders in `backend/`, `frontend/src/` and the root, the last two neither hidden nor gitignored, because TypeScript, Prettier and markdownlint skip those, and two workflows in `.github/workflows/` itself, where zizmor and actionlint look; all are removed on exit. The first version was checked in a live session on 2026-11-10; the current one only by its test.
+  gitleaks is not in the hook: it scans what is staged, at commit. Generated code is skipped by the tools' ignore files. Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Files outside the repository are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch folders in `backend/`, `frontend/src/` and the root, the last two neither hidden nor gitignored, because TypeScript, Prettier and markdownlint skip those, and two workflows in `.github/workflows/` itself, where zizmor and actionlint look; all are removed on exit. The first version was checked in a live session on 2026-11-10, and the current one on 2026-11-11 (markdownlint, shellcheck and zizmor each reported an error back to Claude).
 - Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
 
 ## Validar
