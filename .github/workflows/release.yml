@@ -92,7 +92,7 @@ jobs:
           MISE_EXEC_AUTO_INSTALL: "false"
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          mise install uv
+          mise install --locked uv
           mise exec -- uv lock
           # The backend half of `just contract`; the frontend's contract
           # does not depend on the version.
@@ -134,7 +134,7 @@ jobs:
           MISE_EXEC_AUTO_INSTALL: "false"
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          mise install node pnpm uv
+          mise install --locked node pnpm uv
           mise exec -- pnpm install --frozen-lockfile
           mise exec -- pnpm --filter ivlia-frontend run build
           mise exec -- uv build backend --wheel --out-dir dist

@@ -18,7 +18,7 @@ Every development tool meets these rules. Review a tool against them whenever it
 
 ## Tool versions
 
-- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint, shellcheck, zizmor and pre-commit. `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
+- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint, shellcheck and zizmor. `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
 - pnpm is pinned only in `mise.toml`, not in `packageManager` of `package.json`: with `packageManager`, pnpm 12 writes `pnpm-lock.yaml` as two YAML documents, which GitHub's dependency graph does not read, so Dependabot would raise no security alerts for JavaScript. Corepack is not used.
 - Python is not in mise: uv installs it, from [.python-version](../../.python-version) at the root (exact patch).
 - The root is a uv workspace ([pyproject.toml](../../pyproject.toml)), as the pnpm workspace is for Node: a non-package root (`package = false`) that holds the repository's Python tools, with `backend/` as its member. One `uv.lock`, one `.venv` and one `.python-version` at the root. uv reads `[tool.uv]` (`required-version`, `exclude-newer`) only from the root.
