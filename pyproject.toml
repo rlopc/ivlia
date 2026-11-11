@@ -19,5 +19,10 @@ required-version = ">=0.13.6,<0.14"
 # The cooldown (docs/standards/README.md, versions policy).
 exclude-newer = "7 days"
 
+# Ruff for the Python outside backend/ (the Claude Code hooks, standard library
+# only): default rules, with the project's Python (requires-python). backend/
+# has its own configuration.
+[tool.ruff]
+
 [tool.uv.workspace]
 members = ["backend"]

@@ -6,21 +6,27 @@ minimum_pre_commit_version: "4.5.0"
 repos:
   - repo: local
     hooks:
-      # pre-commit-hooks, from the root dev group (uv.lock), with the ids, entries
-      # and types of its own hook definitions.
+      # pre-commit-hooks, from the root dev group (uv.lock), with the ids, entries,
+      # types and stages of its own hook definitions.
+      # --enforce-all: every file, not only new ones, so `just check` and CI check
+      # too. The lockfiles are left out: they grow on their own.
       - id: check-added-large-files
         name: check for added large files
-        entry: mise exec -- uv run --locked check-added-large-files
+        entry: mise exec -- uv run --locked check-added-large-files --enforce-all
         language: unsupported
+        exclude: ^(uv\.lock|pnpm-lock\.yaml|mise\.lock)$
+        stages: [pre-commit, pre-push, manual]
 
       - id: check-case-conflict
         name: check for case conflicts
         entry: mise exec -- uv run --locked check-case-conflict
         language: unsupported
 
+      # --assume-in-merge: also outside a merge (after a stash pop or a
+      # cherry-pick), and in `just check` and CI.
       - id: check-merge-conflict
         name: check for merge conflicts
-        entry: mise exec -- uv run --locked check-merge-conflict
+        entry: mise exec -- uv run --locked check-merge-conflict --assume-in-merge
         language: unsupported
         types: [text]
 
@@ -32,6 +38,7 @@ repos:
         language: unsupported
         types: [text]
         files: &unowned (\.(toml|sh|sql)|(^|/)(justfile|\.gitignore|\.prettierignore|\.python-version))$
+        stages: [pre-commit, pre-push, manual]
 
       - id: trailing-whitespace
         name: trim trailing whitespace
@@ -39,6 +46,7 @@ repos:
         language: unsupported
         types: [text]
         files: *unowned
+        stages: [pre-commit, pre-push, manual]
 
       # files, require_serial and --no-progress as in zizmor's own hook, plus
       # --offline: local checks never use the network, even with a GitHub token
@@ -82,13 +90,13 @@ repos:
         name: ruff check
         entry: mise exec -- uv run --locked --project backend ruff check --fix
         language: unsupported
-        files: ^backend/.*\.py$
+        files: ^(backend/.*|\.claude/hooks/[^/]+)\.py$
 
       - id: ruff-format
         name: ruff format
         entry: mise exec -- uv run --locked --project backend ruff format
         language: unsupported
-        files: ^backend/.*\.py$
+        files: ^(backend/.*|\.claude/hooks/[^/]+)\.py$
 
       # Every file, as `just fix` does: --ignore-unknown and .prettierignore
       # decide what Prettier formats.

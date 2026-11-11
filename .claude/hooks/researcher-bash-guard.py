@@ -30,15 +30,44 @@ PUNCTUATION = set("();<>|&")
 ANY_OPTIONS = {"cat", "head", "tail", "ls", "grep", "wc", "cut", "tr", "cd", "pdfinfo"}
 DOCUMENT_READERS = {"unzip", "pdftotext", "pdfinfo"}
 FIND_OPTIONS = {
-    "-name", "-iname", "-path", "-ipath", "-regex", "-iregex", "-type", "-maxdepth",
-    "-mindepth", "-size", "-mtime", "-newer", "-empty", "-not", "!", "-a", "-and",
-    "-o", "-or", "-print", "-print0", "-prune", "-ls", "-L", "-H",
+    "-name",
+    "-iname",
+    "-path",
+    "-ipath",
+    "-regex",
+    "-iregex",
+    "-type",
+    "-maxdepth",
+    "-mindepth",
+    "-size",
+    "-mtime",
+    "-newer",
+    "-empty",
+    "-not",
+    "!",
+    "-a",
+    "-and",
+    "-o",
+    "-or",
+    "-print",
+    "-print0",
+    "-prune",
+    "-ls",
+    "-L",
+    "-H",
 }
 UNZIP_MODES = {"-l", "-v", "-t", "-p", "-Z", "-Z1"}
 PDFTOTEXT_FLAGS = {"-layout", "-raw", "-nopgbrk", "-q"}
 PDFTOTEXT_WITH_VALUE = {"-f", "-l", "-enc"}
 CURL_SHORT_FLAGS = re.compile(r"-[sSLfI]+")
-CURL_LONG_FLAGS = {"--silent", "--show-error", "--location", "--fail", "--head", "--compressed"}
+CURL_LONG_FLAGS = {
+    "--silent",
+    "--show-error",
+    "--location",
+    "--fail",
+    "--head",
+    "--compressed",
+}
 CURL_WITH_VALUE = {"-A", "-H", "-m", "--user-agent", "--header", "--max-time"}
 
 ALLOWED_HELP = (
@@ -122,8 +151,17 @@ def segments(cmd):
             result.append(current)
             current = []
         else:
-            target = tokens[i + 1][1] if i + 1 < len(tokens) and not tokens[i + 1][0] else None
-            if tok in {">", ">>"} and target == "/dev/null" or tok == ">&" and target in {"1", "2"}:
+            target = (
+                tokens[i + 1][1]
+                if i + 1 < len(tokens) and not tokens[i + 1][0]
+                else None
+            )
+            if (
+                tok in {">", ">>"}
+                and target == "/dev/null"
+                or tok == ">&"
+                and target in {"1", "2"}
+            ):
                 if current and current[-1].isdigit():
                     current.pop()  # El descriptor de 2>/dev/null o 2>&1.
                 i += 1
@@ -145,7 +183,9 @@ def reads_only_stdin(words):
     prog, args = words[0], words[1:]
     if any(a.startswith("--") for a in args):
         return False
-    positional = [a for a in args if not a.startswith("-") and not a.lstrip("+").isdigit()]
+    positional = [
+        a for a in args if not a.startswith("-") and not a.lstrip("+").isdigit()
+    ]
     if prog == "grep":
         if any(a.startswith("-") and set(a) & set("frRd") for a in args):
             return False
@@ -158,7 +198,8 @@ def reads_only_stdin(words):
 def auto_approved(segs, ops):
     """Un lector de documentos, encadenado solo por tuberías a filtros que no leen ficheros."""
     return (
-        ops <= {"|", ">", ">&"}  # Las redirecciones que quedan aquí van a /dev/null o 2>&1.
+        ops
+        <= {"|", ">", ">&"}  # Las redirecciones que quedan aquí van a /dev/null o 2>&1.
         and segs[0][0] in DOCUMENT_READERS
         and all(reads_only_stdin(words) for words in segs[1:])
     )
@@ -179,7 +220,11 @@ def check_segment(words):
             if a.startswith("-") and a not in FIND_OPTIONS:
                 raise Blocked(f"opción de find no permitida: {a}")
     elif prog == "unzip":
-        if not args or args[0] not in UNZIP_MODES or any(a.startswith("-") for a in args[1:]):
+        if (
+            not args
+            or args[0] not in UNZIP_MODES
+            or any(a.startswith("-") for a in args[1:])
+        ):
             raise Blocked("unzip solo lista o vuelca a la salida estándar")
     elif prog == "pdftotext":
         positional, rest = [], iter(args)
@@ -191,7 +236,9 @@ def check_segment(words):
             elif a not in PDFTOTEXT_FLAGS:
                 raise Blocked(f"opción de pdftotext no permitida: {a}")
         if len(positional) != 2 or positional[1] != "-":
-            raise Blocked("pdftotext debe escribir en la salida estándar (último argumento: -)")
+            raise Blocked(
+                "pdftotext debe escribir en la salida estándar (último argumento: -)"
+            )
     elif prog == "curl":
         urls, rest = [], iter(args)
         for a in rest:
@@ -216,21 +263,31 @@ def main():
         print("researcher-bash-guard: entrada no válida", file=sys.stderr)
         return 2
     agent = data.get("agent_type") or ""
-    if agent != AGENT and not agent.endswith(":" + AGENT):  # Con plugin: "plugin:researcher".
+    if agent != AGENT and not agent.endswith(
+        ":" + AGENT
+    ):  # Con plugin: "plugin:researcher".
         return 0
     try:
         segs, ops = segments(data.get("tool_input", {}).get("command", ""))
         for words in segs:
             check_segment(words)
     except Blocked as e:
-        print(f"Bloqueado por researcher-bash-guard: {e}. {ALLOWED_HELP}", file=sys.stderr)
+        print(
+            f"Bloqueado por researcher-bash-guard: {e}. {ALLOWED_HELP}", file=sys.stderr
+        )
         return 2
     if auto_approved(segs, ops):
-        print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "allow",
-            "permissionDecisionReason": "researcher-bash-guard: lectura de documento validada",
-        }}))
+        print(
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "PreToolUse",
+                        "permissionDecision": "allow",
+                        "permissionDecisionReason": "researcher-bash-guard: lectura de documento validada",
+                    }
+                }
+            )
+        )
     return 0
 
 

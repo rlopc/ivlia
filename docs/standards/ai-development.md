@@ -26,7 +26,7 @@ Enabled in the same file (`sandbox`):
 - `autoAllowBashIfSandboxed: false`: a command runs without asking only if it matches the allow list; everything else asks.
 - `allowUnsandboxedCommands: false`: Claude cannot retry a command outside the sandbox.
 - `excludedCommands`: only `just setup` runs outside the sandbox, and it still asks.
-- Verified on 2026-11-09: after `just setup`, `just check` and the pre-commit hook pass inside the sandbox.
+- Verified on 2026-11-09: after `just setup`, `just check` and the pre-commit hook pass inside the sandbox. Exception since 2026-11-11: `end-of-file-fixer` opens each file for writing even when it changes nothing, so inside the sandbox it fails on `.claude/hooks/*.sh`, which the sandbox protects. Commits that touch `.claude/hooks/` are made by the user, who also copies those files in; skipping the hook is not the normal workflow.
 - Consequences:
   - `git push` needs the SSH agent and `gh` needs `~/.config/gh`, both outside the sandbox: the user runs them with `!` (for example `git push`, `gh pr create`, `gh pr checks`).
   - Commit signing needs the SSH agent too, so commits in this repository are not signed (`commit.gpgsign false` in `.git/config`). Commits on `main` are created and signed by GitHub at squash merge.
@@ -36,18 +36,18 @@ Enabled in the same file (`sandbox`):
 
 - PreToolUse on Bash: `researcher-bash-guard.py` limits the read-only Bash of the `researcher` agent; its test (`.claude/hooks/researcher-bash-guard.test.sh`) runs in `just check`.
 - PostToolUse on `Edit` and `Write`: `lint-after-edit.py` formats and lints each file Claude edits with pre-commit's file tools (same order and ignore files), so problems are reported while writing ([repository.md](repository.md)). Through `mise exec`, from the root, with the path relative to it:
-  - Text files that no formatter owns: `end-of-file-fixer` and `trailing-whitespace-fixer` (their exit code 1 means they fixed the file, not an error).
+  - Text files that no formatter owns: `end-of-file-fixer` and `trailing-whitespace-fixer` (their exit code 1 with a `Fixing <file>` message means they fixed the file; with anything on stderr, such as a traceback, it is an error).
   - GitHub Actions files: zizmor (`--offline`), and actionlint for workflows.
   - Shell scripts: shellcheck.
   - Markdown: `markdownlint-cli2 --fix`.
 
   File types come from identify (`uv run --locked identify-cli`), the library pre-commit uses for `types`, so a file is a shell script, YAML or Markdown exactly when it is for pre-commit (for example, a shebang counts only in an executable file).
-  - `backend/**/*.py`: `ruff check --fix`, then `ruff format` (`uv run --locked`).
+  - Python in `backend/` and `.claude/hooks/`: `ruff check --fix`, then `ruff format` (`uv run --locked`).
   - Any file: Prettier with `--ignore-unknown`.
   - `frontend/**/*.ts(x)`: `eslint --fix`.
 
   gitleaks and pre-commit-hooks' commit checks (large files, case and merge conflicts) are not in the hook: they check the commit, not one file. Generated code is skipped by the tools' ignore files. Errors the tools cannot fix go back to Claude (exit code 2), so it fixes them in its next step. Files outside the repository are ignored. Its test (`.claude/hooks/lint-after-edit.test.sh`) runs in `just check`; it writes scratch folders in `backend/`, `frontend/src/` and the root, the last two neither hidden nor gitignored, because TypeScript, Prettier and markdownlint skip those, and two workflows in `.github/workflows/` itself, where zizmor and actionlint look; all are removed on exit. The first version was checked in a live session on 2026-11-10, and the current one on 2026-11-11 (markdownlint, shellcheck and zizmor each reported an error back to Claude).
-- Both hooks are standard-library Python run with `python3 -I`. Hooks run outside the Bash sandbox.
+- Both hooks are standard-library Python, run through `.claude/hooks/python.sh` with the project's Python (the root `.venv`, as in `just check` and CI), in isolated mode (`-I`). Without the `.venv`, the wrapper exits 2 and asks to run `just setup`, so neither hook fails without a reason; the researcher's guard also blocks on any failure (`onFailure: "block"`). Both tests run the hooks through it. Hooks run outside the Bash sandbox.
 
 ## Validar
 
