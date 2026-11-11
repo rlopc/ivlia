@@ -59,7 +59,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 ## Formatting
 
 - Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)). `.jsonc` files get no trailing commas, which VS Code flags.
-- markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc) (line length and first-line-heading rules off; duplicate headings allowed between non-siblings, because `docs/04` has two "Fuentes" headings at different levels). Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
+- markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc), each with its reason: line length and first-line-heading rules off, duplicate headings allowed between non-siblings. Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
 - shellcheck: SC2016 is disabled only in `.claude/hooks/researcher-bash-guard.test.sh`, with a reason (literal test commands).
 
 ## Generated files
@@ -80,6 +80,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 - The Mypy extension runs from the nearest `pyproject.toml` (`backend/`), so it reads the project's mypy configuration, and uses the project's mypy, not its bundled one.
 - Pylance type checking is off: mypy is the only type checker, in the terminal and in CI.
+- Known deviation: the markdownlint extension bundles its own markdownlint-cli2 (0.23.2 in extension 0.62.1, checked 2026-11-11) and has no setting to use the project's. It reads the same config files, so it stays as early feedback; pre-commit and CI, with the project's version, decide.
 
 ## Link checking
 

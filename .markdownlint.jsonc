@@ -1,9 +1,12 @@
 // markdownlint rules. Which files are checked is set in .markdownlint-cli2.jsonc.
 {
-  // No line length limit.
+  // No line length limit: each paragraph is written on one line.
   "MD013": false,
-  // Repeated headings are allowed unless they are siblings.
+  // Repeated headings are allowed unless they are siblings: docs/04 has two
+  // "Fuentes" headings at different levels.
   "MD024": { "siblings_only": true },
-  // A file does not have to start with a top-level heading.
+  // A file does not have to start with a top-level heading: Claude Code files
+  // (agents, with front matter and no title; CLAUDE.md, an @AGENTS.md import)
+  // and the pull request template do not.
   "MD041": false
 }
