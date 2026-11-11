@@ -28,7 +28,10 @@ jobs:
           # Cooldown exception until 2026-11-16 (docs/standards/README.md).
           version: 2026.11.5
           install: false
-      - run: mise install just lychee
+          # Its default key is not documented: a cache with only these two
+          # tools must not be restored in ci.yml.
+          cache: false
+      - run: mise install --locked just lychee
         env:
           # Read-only; avoids GitHub API rate limits on shared runners.
           GITHUB_TOKEN: ${{ github.token }}

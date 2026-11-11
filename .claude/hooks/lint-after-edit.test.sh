@@ -4,6 +4,7 @@
 # Each case writes a file, sends the hook its path and checks the exit code
 # and, for fixable problems, that the file was fixed.
 
+# shellcheck disable=SC2016  # the test files are literal scripts and workflows
 set -uo pipefail
 
 project="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -15,7 +16,9 @@ backend="$(mktemp -d "$project/backend/.hook-test.XXXXXX")" || exit 1
 frontend="$(mktemp -d "$project/frontend/src/hook-test-XXXXXX")" || exit 1
 root="$(mktemp -d "$project/hook-test-XXXXXX")" || exit 1
 outside="$(mktemp -d "${TMPDIR:-/tmp}/lint-hook.XXXXXX")" || exit 1
-trap 'rm -rf "$backend" "$frontend" "$root" "$outside"' EXIT
+# Workflows must sit in .github/workflows/ itself, where zizmor and actionlint look.
+workflow="$project/.github/workflows/hook-test-$$"
+trap 'rm -rf "$backend" "$frontend" "$root" "$outside" "$workflow"-*.yml' EXIT
 stderr="$outside/stderr"
 failures=0
 
@@ -74,6 +77,24 @@ check "markdown fixable" 0 "$root/fixable.md"
 printf '# Title\n\n[link](#missing)\n' >"$root/broken.md"
 check "markdown unfixable" 2 "$root/broken.md"
 grep -q "MD051" "$stderr" || fail "markdown error not reported"
+
+# Shell: shellcheck, found by suffix and by shebang; a clean script passes.
+printf '#!/usr/bin/env bash\necho "$1"\n' >"$root/clean.sh"
+check "shell clean" 0 "$root/clean.sh"
+printf '#!/usr/bin/env bash\necho $1\n' >"$root/broken.sh"
+check "shell unfixable" 2 "$root/broken.sh"
+grep -q "SC2086" "$stderr" || fail "shell error not reported"
+printf '#!/usr/bin/env bash\necho $1\n' >"$root/broken-script"
+check "shell by shebang" 2 "$root/broken-script"
+grep -q "SC2086" "$stderr" || fail "shell error by shebang not reported"
+
+# Workflows: zizmor (security) and actionlint (syntax), each on its own case.
+printf 'on: issues\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - run: echo "${{ github.event.issue.title }}"\n' >"$workflow-injection.yml"
+check "workflow zizmor" 2 "$workflow-injection.yml"
+grep -q "template-injection" "$stderr" || fail "zizmor error not reported"
+printf 'on: push\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    foo: bar\n    steps:\n      - run: echo hi\n' >"$workflow-syntax.yml"
+check "workflow actionlint" 2 "$workflow-syntax.yml"
+grep -q "syntax-check" "$stderr" || fail "actionlint error not reported"
 
 # Ignored: generated files, files outside the repository, unknown types.
 for generated in "$project/frontend/src/contract/events.ts" "$project/CHANGELOG.md"; do

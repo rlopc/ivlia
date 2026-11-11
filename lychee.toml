@@ -2,3 +2,10 @@
 # links.yml. The justfile passes the files: every versioned Markdown file.
 include_fragments = "full"
 no_progress = true
+# Generated files, as in .markdownlint-cli2.jsonc: a broken link there cannot be
+# fixed by hand. Regular expressions on the paths from `git ls-files`.
+exclude_path = [
+  '^CHANGELOG\.md$',
+  '^\.claude/commands/opsx/',
+  '^\.claude/skills/openspec-',
+]

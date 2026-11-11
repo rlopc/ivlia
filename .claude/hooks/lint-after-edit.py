@@ -1,14 +1,18 @@
 """PostToolUse hook: format and lint each file Claude edits, as pre-commit does.
 
-The same tools, order and ignore files as .pre-commit-config.yaml, so a problem
-is reported while writing, not at commit:
+The same file tools, order and ignore files as .pre-commit-config.yaml, so a
+problem is reported while writing, not at commit:
 
+- GitHub Actions files: zizmor (offline), and actionlint for workflows.
+- Shell scripts (`.sh`, `.bash`, or a shell shebang): shellcheck.
 - *.md: markdownlint-cli2 with --fix; .markdownlint-cli2.jsonc decides which
   files it skips.
 - backend/**/*.py: `ruff check --fix`, then `ruff format` (Ruff's order), in
   the locked uv environment.
 - Any file: Prettier with --ignore-unknown; .prettierignore decides.
 - frontend/**/*.ts(x): `eslint --fix`, as `just check-frontend` runs it.
+
+gitleaks is not here: it scans what is staged, at commit.
 
 Paths are passed relative to the repository root, which is the working
 directory, as pre-commit does, so the ignore patterns match the same way.
@@ -21,11 +25,19 @@ Input: the hook JSON on stdin, with `tool_input.file_path`.
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 ESLINT_SUFFIXES = {".ts", ".tsx"}
+SHELL_SUFFIXES = {".sh", ".bash"}
+SHELL_SHEBANG = re.compile(rb"^#!\s*/\S*(/env\s+)?(ba)?sh\b")
+# The same `files` patterns as the zizmor and actionlint hooks.
+ZIZMOR_FILES = re.compile(
+    r"(^|/)(\.github/(workflows/[^/]+|dependabot)\.ya?ml|action\.ya?ml|\.pre-commit-(config|hooks)\.ya?ml)$"
+)
+ACTIONLINT_FILES = re.compile(r"^\.github/workflows/.*\.ya?ml$")
 
 
 def run(project: Path, *command: str) -> subprocess.CompletedProcess[str]:
@@ -38,10 +50,23 @@ def run(project: Path, *command: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def steps(path: Path) -> list[tuple[str, list[str]]]:
+def is_shell(project: Path, path: Path) -> bool:
+    if path.suffix in SHELL_SUFFIXES:
+        return True
+    with (project / path).open("rb") as file:
+        return bool(SHELL_SHEBANG.match(file.readline()))
+
+
+def steps(project: Path, path: Path) -> list[tuple[str, list[str]]]:
     """The commands for a path relative to the repository root, in order."""
-    file, zone = str(path), path.parts[0]
+    file, zone = path.as_posix(), path.parts[0]
     result = []
+    if ZIZMOR_FILES.search(file):
+        result.append(("zizmor", ["zizmor", "--offline", "--no-progress", file]))
+    if is_shell(project, path):
+        result.append(("shellcheck", ["shellcheck", file]))
+    if ACTIONLINT_FILES.match(file):
+        result.append(("actionlint", ["actionlint", file]))
     if path.suffix == ".md":
         result.append(("markdownlint", ["pnpm", "exec", "markdownlint-cli2", "--fix", file]))
     if zone == "backend" and path.suffix == ".py":
@@ -66,7 +91,7 @@ def main() -> int:
     if not path.is_relative_to(project) or not path.is_file():
         return 0
 
-    for name, command in steps(path.relative_to(project)):
+    for name, command in steps(project, path.relative_to(project)):
         result = run(project, *command)
         if result.returncode != 0:
             sys.stderr.write(f"{name} found errors it cannot fix in {path}:\n{result.stdout}{result.stderr}")

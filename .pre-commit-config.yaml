@@ -6,10 +6,12 @@ minimum_pre_commit_version: "4.5.0"
 repos:
   - repo: local
     hooks:
-      # files, require_serial and --no-progress as in zizmor's own hook.
+      # files, require_serial and --no-progress as in zizmor's own hook, plus
+      # --offline: local checks never use the network, even with a GitHub token
+      # in the environment.
       - id: zizmor
         name: zizmor
-        entry: mise exec -- zizmor --no-progress
+        entry: mise exec -- zizmor --offline --no-progress
         language: unsupported
         types: [yaml]
         files: (^|/)(\.github/(workflows/[^/]+|dependabot)\.ya?ml|action\.ya?ml|\.pre-commit-(config|hooks)\.ya?ml)$
