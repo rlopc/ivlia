@@ -40,7 +40,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: none
-          # Generated code, which every other tool skips too.
+          # Generated source code, which every other tool skips too.
           config: |
             paths-ignore:
               - frontend/src/contract

@@ -34,3 +34,4 @@ Las rebanadas posteriores (agente Code, agente Learning, voz, grafo de conocimie
 | Cómo se detecta que un hecho actualiza a otro | Rebanada 7 |
 | Pasar los workflows de `ubuntu-24.04` a `ubuntu-26.04` ([ci.md](standards/ci.md#rules-for-every-workflow)) | Después de fusionar las PR apiladas pendientes, en su propia PR |
 | Confirmar que Scorecard acepta `ubuntu-24.04` al publicar resultados ([ci.md](standards/ci.md#scorecard)) | En la primera ejecución de `scorecard.yml` en `main` |
+| Confirmar que `analyze (actions)` pasa sin `actions: read` y que `paths-ignore` excluye `frontend/src/contract/` ([ci.md](standards/ci.md#codeql)) | En la primera ejecución de `codeql.yml` en `main` |

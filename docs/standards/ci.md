@@ -31,13 +31,6 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - Each job runs on a fixed Ubuntu label (`ubuntu-24.04`), not `ubuntu-latest`, which GitHub moves to each new image over several weeks; runner-images suggests a fixed label "to avoid unwanted migration". Each newer GA image comes in its own pull request ([decision map](../decisions/README.md)).
 - A stacked pull request retargeted to `main` gets no new run on its own (the base change is an `edited` event): merge `main` into its branch and push, so every required check runs against `main`.
 
-## CodeQL
-
-- Pull requests to `main` only, as in GitHub's starter workflow: code scanning compares a pull request with the analysis of its base branch, and only `main` is analyzed. Stacked pull requests are checked early by `ci.yml`.
-- `paths-ignore` (in the `config` input) skips the generated `frontend/src/contract/`; code scanning applies it to JavaScript/TypeScript and Python without a build. In advanced setup, CodeQL does not skip generated files on its own.
-- No `actions: read`: the starter workflow needs it only in private repositories. If the `actions` analysis turns out to need it, its job fails on the first run.
-- Superseded pull request runs are cancelled, as in `ci.yml`.
-
 ## The CI job
 
 - mise-action installs mise only (`install: false`), the same version as on the Mac, verified against its signed checksums; a `mise install --locked` step installs the tools, with the job's read-only token to avoid GitHub API rate limits.
@@ -45,6 +38,13 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - Two caches: mise-action's own, of the installed tools (on by default, renewed every 30 days), and one `actions/cache` for the pnpm store and the uv cache, keyed on `pnpm-lock.yaml` and `uv.lock`. `links.yml` turns mise-action's cache off, so its two tools never fill the cache that `ci.yml` restores. `uv cache prune --ci` keeps the uv part small. Playwright's browser is not cached, as Playwright advises; its system packages are installed on each run.
 - No cache in the release workflow: a poisoned cache must never reach a published artifact.
 - `pnpm audit` complements Dependabot alerts for JavaScript; it fails on high or critical advisories. Before the first run it found one (re2js, through markdownlint), fixed with a pnpm override ([repository.md](repository.md#known-limitations-and-risks-to-revisit)).
+
+## CodeQL
+
+- Pull requests to `main` only, as in GitHub's starter workflow: code scanning compares a pull request with the analysis of its base branch, and only `main` is analyzed. Stacked pull requests are checked early by `ci.yml`.
+- `paths-ignore` (in the `config` input) skips the generated source code in `frontend/src/contract/`; code scanning applies it to JavaScript/TypeScript and Python without a build. In advanced setup, CodeQL does not skip generated files on its own.
+- No `actions: read`: the starter workflow needs it only in private repositories. If the `actions` analysis turns out to need it, its job fails on the first run.
+- Superseded pull request runs are cancelled, as in `ci.yml`.
 
 ## Scorecard
 
