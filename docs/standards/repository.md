@@ -29,7 +29,7 @@ Every development tool meets these rules. Review a tool against them whenever it
 
 ## `just` recipes
 
-Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
+Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation). `mise.toml` sets the last two too, and jdx/mise-action exports them in CI (its `env` input, on by default); the justfile repeats them on purpose, so every recipe uses the dev installation however `just` is started. `set ignore-comments` keeps comment lines inside linewise recipes (not shebang recipes) from being echoed or run.
 
 - `just setup`: `mise install --locked`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked --all-packages`, `pre-commit install` and `pre-commit install-hooks` (through `uv run --locked`, like every pre-commit call). Uses the network; the only recipe that installs.
 - `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
@@ -39,9 +39,8 @@ Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `D
 - `just contract`: exports the event contract and the OpenAPI document, and generates the frontend's types and validator ([api.md](api.md#export)).
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
-- `just fix`: Prettier and markdownlint auto-fixes.
 - `just update-tools`: `mise upgrade --bump`, which upgrades every tool in `mise.toml` to its newest release at least 7 days old and updates `mise.lock`. Uses the network. `tool-updates.yml` reminds monthly ([ci.md](ci.md#dependabot)).
-- `just review-diff`: writes the diff against `main` and the changed-file list to `.dev/review/` for the reviewer agent.
+- `just review-diff [base]`: writes the diff against `base` (default `main`; pass the parent branch of a stacked PR) and the changed-file list to `.dev/review/` for the reviewer agent. `base` reaches git as a positional argument after `--end-of-options`, so it is never shell code nor a git option.
 
 ## Pre-commit
 
@@ -52,7 +51,7 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
   - pre-commit-hooks: run through `uv run --locked`, from the root's dev group.
-- Hooks: pre-commit-hooks' commit checks, with the stages of their upstream definitions (`check-added-large-files`, 500 kB, with `--enforce-all` so `just check` and CI check every file, lockfiles excluded because they grow on their own; `check-case-conflict`, because macOS ignores case and CI does not; `check-merge-conflict` with `--assume-in-merge`, so it also runs outside a merge and in CI), its `end-of-file-fixer` and `trailing-whitespace` on the text files no formatter owns (see [formatting](#formatting)), gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/` and `.claude/hooks/`), and Prettier on every file, as `just fix` does (`--ignore-unknown` and `.prettierignore` decide).
+- Hooks: pre-commit-hooks' commit checks, with the stages of their upstream definitions (`check-added-large-files`, 500 kB, with `--enforce-all` so `just check` and CI check every file, lockfiles excluded because they grow on their own; `check-case-conflict`, because macOS ignores case and CI does not; `check-merge-conflict` with `--assume-in-merge`, so it also runs outside a merge and in CI), its `end-of-file-fixer` and `trailing-whitespace` on the text files no formatter owns (see [formatting](#formatting)), gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/` and `.claude/hooks/`), and Prettier on every file (`--ignore-unknown` and `.prettierignore` decide).
 - A hook that changes files fails that run; running `just check` again passes.
 - `minimum_pre_commit_version` is set. prek is not used: it is still 0.x; revisit at 1.0.
 

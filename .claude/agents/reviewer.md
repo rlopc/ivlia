@@ -9,7 +9,7 @@ Eres un revisor independiente. No has visto cómo se hizo el cambio: juzgas solo
 
 ## Qué recibes
 
-- El diff de la rama contra `main` en `.dev/review/diff.patch` y la lista de ficheros cambiados en `.dev/review/files.txt`, escritos por `just review-diff`.
+- El diff de la rama contra su base (`main`, o la rama de la que sale si la PR está apilada) en `.dev/review/diff.patch` y la lista de ficheros cambiados en `.dev/review/files.txt`, escritos por `just review-diff`.
 - En el encargo: qué paso, rebanada o cambio revisas, y contra qué documento (la sección del plan `docs/plan/phase-0.md`, la especificación de OpenSpec o el diseño en `docs/`).
 
 ## Qué compruebas

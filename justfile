@@ -1,6 +1,10 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+# Comment lines inside linewise recipes are neither echoed nor run (not shebang recipes).
+set ignore-comments := true
+
 # Every recipe runs against the dev installation, never the real data.
+# mise.toml sets the same; repeated here so it holds however just is started.
 export IVLIA_ENV := "dev"
 export IVLIA_HOME := justfile_directory() / ".dev"
 
@@ -71,11 +75,6 @@ dev-web:
     (cd backend && uv run --locked ivlia-server --reload) &
     pnpm --filter ivlia-frontend run dev
 
-# Run the formatters and auto-fixes.
-fix:
-    pnpm exec prettier --write .
-    pnpm exec markdownlint-cli2 --fix "**/*.md"
-
 # Export the contract and OpenAPI to backend/schemas/, then generate frontend/src/contract/.
 contract:
     cd backend && uv run --locked python -m ivlia.api.schemas schemas
@@ -85,8 +84,11 @@ contract:
 update-tools:
     mise upgrade --bump
 
-# Write the branch diff against main for the reviewer agent.
-review-diff:
+# Write the branch diff against its base (main unless stacked) for the reviewer agent.
+# Positional arguments: the branch name reaches git as "$1", never as shell code;
+# --end-of-options keeps git from reading it as an option.
+[positional-arguments]
+review-diff base="main":
     mkdir -p .dev/review
-    git diff main...HEAD > .dev/review/diff.patch
-    git diff --name-status main...HEAD > .dev/review/files.txt
+    git diff --end-of-options "$1...HEAD" > .dev/review/diff.patch
+    git diff --name-status --end-of-options "$1...HEAD" > .dev/review/files.txt
