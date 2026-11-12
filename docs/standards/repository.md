@@ -103,7 +103,7 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 - Only squash merging is allowed. The commit title is the PR title and the body is blank.
 - Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only, and the required status checks of [ci.md](ci.md#workflows).
 - Private vulnerability reporting is enabled (see [SECURITY.md](../../SECURITY.md)).
-- Secret scanning and push protection are enabled (default on public repositories).
+- Secret scanning and push protection are enabled (default on public repositories). Scanning for non-provider patterns is not available on this repository (checked 2026-11-12); gitleaks covers generic secrets locally and in CI.
 - Actions: the default `GITHUB_TOKEN` is read-only and cannot approve pull requests. Every action must be pinned by full commit SHA (`sha_pinning_required`), and only GitHub's own actions and an allow list may run: `amannn/action-semantic-pull-request`, `googleapis/release-please-action`, `jdx/mise-action` and `ossf/scorecard-action` (actions from verified creators are not allowed). A new third-party action is added to that list in the repository's Actions settings and here.
 
 ## Known limitations and risks to revisit
