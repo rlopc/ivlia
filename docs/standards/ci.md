@@ -49,7 +49,8 @@ Publishing results restricts the workflow: no `env` or `defaults`, no `run` step
 | `npm` | `/` | the pnpm workspace (root and `frontend/`), `pnpm-lock.yaml`; TypeScript majors are ignored while typescript-eslint does not support them |
 | `github-actions` | `/` | the workflows' SHAs and version comments |
 
-- Weekly, with `cooldown: default-days: 7`, the same cooldown as uv, pnpm and mise ([README](README.md#versions-policy)). No groups.
+- Weekly, with `cooldown: default-days: 7`, the same cooldown as uv, pnpm and mise ([README](README.md#versions-policy)).
+- Groups: minor and patch updates come in one pull request per ecosystem, and each major update in its own, so a breaking change is reviewed alone. Every `github/codeql-action` step goes in one group, majors included, because the action fails when its steps run different versions (seen on 2026-11-12, when Dependabot split `init` and `analyze` into separate pull requests).
 - Titles: `prefix` and `prefix-development` `build(deps)` give `build(deps): bump …`, which the title check accepts (checked on the first Dependabot PRs, 2026-11-10). `include: "scope"` is not used: it would give `build(deps-dev)`, a scope the check rejects.
 - Security updates are enabled by the user in the repository settings; they ignore the cooldown.
 - uv's `required-version` in `backend/pyproject.toml` does not stop Dependabot's uv updates (checked on the first one, 2026-11-10).
