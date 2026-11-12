@@ -16,6 +16,11 @@ updates:
       uv-minor-patch:
         patterns: ["*"]
         update-types: [minor, patch]
+    ignore:
+      # uv_build's lower bound follows uv's version in mise.toml, so uv runs
+      # its built-in backend; `just update-tools` raises both
+      # (docs/standards/ci.md#dependabot).
+      - dependency-name: uv-build
     cooldown:
       default-days: 7
     commit-message:
