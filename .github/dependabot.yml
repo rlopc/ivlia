@@ -13,6 +13,7 @@ updates:
       interval: weekly
     groups:
       uv-minor-patch:
+        patterns: ["*"]
         update-types: [minor, patch]
     cooldown:
       default-days: 7
@@ -27,6 +28,7 @@ updates:
       interval: weekly
     groups:
       npm-minor-patch:
+        patterns: ["*"]
         update-types: [minor, patch]
     ignore:
       # typescript-eslint supports TypeScript < 6.1: stay on 6.x until it
@@ -45,10 +47,15 @@ updates:
       interval: weekly
     groups:
       # Every step of github/codeql-action must run the same version, majors
-      # included. A dependency joins the first group it matches.
+      # and security updates included. A dependency joins the first group it
+      # matches, and a group without applies-to covers version updates only.
       codeql-action:
         patterns: ["github/codeql-action*"]
+      codeql-action-security:
+        applies-to: security-updates
+        patterns: ["github/codeql-action*"]
       actions-minor-patch:
+        patterns: ["*"]
         update-types: [minor, patch]
     cooldown:
       default-days: 7
