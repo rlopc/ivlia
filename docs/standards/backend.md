@@ -4,10 +4,10 @@ The Python package `ivlia` in `backend/`: domain, application, adapters, API and
 
 ## Project
 
-- A simple uv project (not a workspace) with a src layout: [backend/pyproject.toml](../../backend/pyproject.toml), `backend/uv.lock`, and `backend/.python-version` (Python 3.14).
-- Build backend: `uv_build`. `[tool.uv]` sets `required-version` and `exclude-newer = "7 days"` (the cooldown, [README](README.md#versions-policy)).
+- A member of the root uv workspace ([repository.md](repository.md#tool-versions)), with a src layout: [backend/pyproject.toml](../../backend/pyproject.toml). The lock (`uv.lock`), the `.venv` and `.python-version` (Python 3.14, exact patch there) are at the root, and so is `[tool.uv]` (`required-version`, and `exclude-newer = "7 days"`, the cooldown, [README](README.md#versions-policy)): uv ignores it in a member.
+- Build backend: `uv_build`.
 - Dependencies are pinned to exact versions in `pyproject.toml`. Runtime and the `dev` group are listed there; `uv.lock` holds the full tree.
-- Every command goes through `uv run --locked` or `uv sync --locked`, so nothing rewrites `uv.lock` by accident. Adding or upgrading a dependency needs the user's confirmation.
+- Every command goes through `uv run --locked` or `uv sync --locked --all-packages` (`just setup`), so nothing rewrites `uv.lock` by accident; a partial `uv sync` would remove part of the shared `.venv`. Adding or upgrading a dependency needs the user's confirmation.
 - `LICENSE` lives at the repository root, outside the package, so the wheel does not include it yet. Step 6 (release) resolves it.
 
 ## Layout and layers

@@ -36,9 +36,7 @@ dev = [
 requires = ["uv_build>=0.13.6,<0.14"]
 build-backend = "uv_build"
 
-[tool.uv]
-required-version = ">=0.13.6,<0.14"
-exclude-newer = "7 days"
+# No [tool.uv] here: in a workspace uv reads it only from the root pyproject.toml.
 
 [tool.ruff.lint]
 # Curated families, each with its reason in docs/standards/backend.md.

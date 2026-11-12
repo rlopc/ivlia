@@ -1,0 +1,23 @@
+# uv workspace root: one uv.lock, one .venv and one .python-version for the
+# repository. The root is not a package; it holds the repository's Python tools,
+# as the root package.json does for Node. The application is the member backend/.
+# Install everything with `just setup` (`uv sync --locked --all-packages`): a
+# plain `uv sync` installs only one part and removes the rest.
+[project]
+name = "ivlia-workspace"
+version = "0.0.0"
+requires-python = ">=3.14"
+license = "AGPL-3.0-or-later"
+
+[dependency-groups]
+dev = ["pre-commit==4.7.0"]
+
+# uv reads [tool.uv] only here, for every member.
+[tool.uv]
+package = false
+required-version = ">=0.13.6,<0.14"
+# The cooldown (docs/standards/README.md, versions policy).
+exclude-newer = "7 days"
+
+[tool.uv.workspace]
+members = ["backend"]

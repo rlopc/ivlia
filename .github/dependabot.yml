@@ -7,8 +7,9 @@
 version: 2
 
 updates:
+  # The uv workspace: root and backend/, with the root uv.lock.
   - package-ecosystem: uv
-    directory: /backend
+    directory: /
     schedule:
       interval: weekly
     groups:

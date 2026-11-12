@@ -1,12 +1,14 @@
 """PostToolUse hook: format and lint each file Claude edits, as pre-commit does.
 
-The same file tools, order and ignore files as .pre-commit-config.yaml, so a
-problem is reported while writing, not at commit:
+The same file tools, order and file selection as .pre-commit-config.yaml, so a
+problem is reported while writing, not at commit. File types come from
+identify, the library pre-commit uses for `types`, so a file is a shell script
+or YAML here exactly when it is for pre-commit:
 
-- GitHub Actions files: zizmor (offline), and actionlint for workflows.
-- Shell scripts (`.sh`, `.bash`, or a shell shebang): shellcheck.
-- *.md: markdownlint-cli2 with --fix; .markdownlint-cli2.jsonc decides which
-  files it skips.
+- GitHub Actions files (YAML): zizmor (offline), and actionlint for workflows.
+- Shell scripts: shellcheck.
+- Markdown: markdownlint-cli2 with --fix; .markdownlint-cli2.jsonc decides
+  which files it skips.
 - backend/**/*.py: `ruff check --fix`, then `ruff format` (Ruff's order), in
   the locked uv environment.
 - Any file: Prettier with --ignore-unknown; .prettierignore decides.
@@ -31,8 +33,6 @@ import sys
 from pathlib import Path
 
 ESLINT_SUFFIXES = {".ts", ".tsx"}
-SHELL_SUFFIXES = {".sh", ".bash"}
-SHELL_SHEBANG = re.compile(rb"^#!\s*/\S*(/env\s+)?(ba)?sh\b")
 # The same `files` patterns as the zizmor and actionlint hooks.
 ZIZMOR_FILES = re.compile(
     r"(^|/)(\.github/(workflows/[^/]+|dependabot)\.ya?ml|action\.ya?ml|\.pre-commit-(config|hooks)\.ya?ml)$"
@@ -50,24 +50,27 @@ def run(project: Path, *command: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def is_shell(project: Path, path: Path) -> bool:
-    if path.suffix in SHELL_SUFFIXES:
-        return True
-    with (project / path).open("rb") as file:
-        return bool(SHELL_SHEBANG.match(file.readline()))
+def file_types(project: Path, file: str) -> set[str]:
+    """identify's tags for a file, from the locked environment; none on error."""
+    result = run(project, "uv", "run", "--locked", "--quiet", "identify-cli", file)
+    try:
+        return set(json.loads(result.stdout)) if result.returncode == 0 else set()
+    except json.JSONDecodeError:
+        return set()
 
 
 def steps(project: Path, path: Path) -> list[tuple[str, list[str]]]:
     """The commands for a path relative to the repository root, in order."""
     file, zone = path.as_posix(), path.parts[0]
+    types = file_types(project, file)
     result = []
-    if ZIZMOR_FILES.search(file):
+    if "yaml" in types and ZIZMOR_FILES.search(file):
         result.append(("zizmor", ["zizmor", "--offline", "--no-progress", file]))
-    if is_shell(project, path):
+    if "shell" in types:
         result.append(("shellcheck", ["shellcheck", file]))
     if ACTIONLINT_FILES.match(file):
         result.append(("actionlint", ["actionlint", file]))
-    if path.suffix == ".md":
+    if "markdown" in types:
         result.append(("markdownlint", ["pnpm", "exec", "markdownlint-cli2", "--fix", file]))
     if zone == "backend" and path.suffix == ".py":
         ruff = ["uv", "run", "--locked", "--quiet", "--project", "backend", "ruff"]

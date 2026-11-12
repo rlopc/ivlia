@@ -81,12 +81,6 @@ url = "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.gz"
 checksum = "sha256:d38bd5e5a2ddce6bbb5ce45e46e208337da4d51fffe611e567fd32073d6439f6"
 url = "https://nodejs.org/dist/v26.13.0/node-v26.13.0-darwin-arm64.tar.gz"
 
-[[tools."pipx:pre-commit"]]
-version = "4.7.0"
-backend = "pipx:pre-commit"
-specifiers = ["4.7.0"]
-uv = { path = ".mise/locks/pipx-pre-commit/4.7.0", digest = "sha256:41a8ea2c08f23450db3b9765f0498bf25292f969382871e59a40fe0b7648ddc9" }
-
 [[tools.pnpm]]
 version = "12.17.0"
 backend = "aqua:pnpm/pnpm"

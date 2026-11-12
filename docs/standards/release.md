@@ -14,7 +14,7 @@ How ivlia is versioned, released and installed. Design: [docs/08](../08-ingenier
 On every push to `main`:
 
 1. `release-please` opens or updates the release PR, titled `chore(repo): release X.Y.Z`, which the title check accepts. When that PR is merged, it tags the release and creates the GitHub release.
-2. `sync`, while there is a release PR (found by release-please's `autorelease: pending` label): regenerates on its branch the generated files that carry the version, with their own commands, and commits them if they changed. They are `backend/uv.lock`, which records the project's own version (`uv lock`; otherwise `uv run --locked` fails), and `backend/schemas/openapi.json`, whose `info.version` is the package version (the backend export of `just contract`; otherwise the export check fails). It runs after every release-please pass, because each pass rewrites the release branch.
+2. `sync`, while there is a release PR (found by release-please's `autorelease: pending` label): regenerates on its branch the generated files that carry the version, with their own commands, and commits them if they changed. They are `uv.lock`, which records the project's own version (`uv lock`; otherwise `uv run --locked` fails), and `backend/schemas/openapi.json`, whose `info.version` is the package version (the backend export of `just contract`; otherwise the export check fails). It runs after every release-please pass, because each pass rewrites the release branch.
 3. `publish`, when a release was created: builds the SPA and the wheel from the tag, attests the wheel's build provenance, and attaches the wheel and its `.sigstore.json` bundle to the release.
 
 ## Credential

@@ -1,5 +1,5 @@
 # Every hook is local and runs a tool locked by mise.lock, pnpm-lock.yaml or
-# backend/uv.lock, through `mise exec` so it works even where mise is not
+# uv.lock, through `mise exec` so it works even where mise is not
 # activated (IDEs, git GUIs).
 minimum_pre_commit_version: "4.5.0"
 

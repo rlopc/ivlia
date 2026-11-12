@@ -14,16 +14,17 @@ default:
 
 # Install the tools and dependencies. Uses the network.
 setup:
-    mise install
+    mise install --locked
     pnpm install --frozen-lockfile
     pnpm --filter ivlia-frontend exec playwright install chromium
-    uv sync --locked --project backend
-    pre-commit install
-    pre-commit install-hooks
+    # Every workspace member and dev group; a plain `uv sync` installs only one part.
+    uv sync --locked --all-packages
+    uv run --locked pre-commit install
+    uv run --locked pre-commit install-hooks
 
 # Run every local check.
 check:
-    pre-commit run --all-files
+    uv run --locked pre-commit run --all-files
     gitleaks git --redact --no-banner
     .claude/hooks/researcher-bash-guard.test.sh
     .claude/hooks/lint-after-edit.test.sh

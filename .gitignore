@@ -5,18 +5,18 @@
 # Dev installation data, Validar reports and review diffs
 .dev/
 
-# mise local state, except the lockfiles of dependency-graph tools (pre-commit),
-# which mise needs to install them and which hold their checksums
-.mise/*
-!.mise/locks/
+# mise local state
+.mise/
 
 # Python
 .venv/
 __pycache__/
 .coverage
 .coverage.*
-# Scratch folders of the lint hook test (the frontend one must not be ignored)
+# Scratch files of the lint hook test (the frontend and root folders must not be
+# ignored; the workflows are passed to zizmor and actionlint by path)
 backend/.hook-test.*/
+/.github/workflows/hook-test-*.yml
 htmlcov/
 
 # Node
