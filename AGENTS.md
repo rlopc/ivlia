@@ -13,7 +13,7 @@
 - The backend is the Python package in `backend/`, CLI included: [backend](docs/standards/backend.md), [API](docs/standards/api.md). The SPA is in `frontend/`: [frontend](docs/standards/frontend.md). Decisions: [decision map](docs/decisions/README.md).
 - Set up with `mise trust`, `mise install` and `just setup`; run every local check with `just check`. CI runs the same checks and more: [ci](docs/standards/ci.md). Releases: [release](docs/standards/release.md).
 - How the project is built and checked: the standards document, `docs/standards/README.md`.
-- `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `reviewer` agent, the lint hook after edits (pre-commit's file tools on each edited file, plus ESLint in `frontend/`), the rules per zone (`.claude/rules/`) and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
+- `.claude/` holds the `researcher` agent and `research` skill (with a bash guard hook), the `validar` skill, the `review-file` skill (explain and review one tool or configuration file against the Toolchain rules), the `reviewer` agent, the lint hook after edits (pre-commit's file tools on each edited file, plus ESLint in `frontend/`), the rules per zone (`.claude/rules/`) and the OpenSpec skills and commands (generated: regenerate with `openspec update`, never edit them by hand).
 
 ## How to work with the user
 
