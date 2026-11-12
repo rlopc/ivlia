@@ -31,7 +31,7 @@ repos:
         types: [text]
 
       # Only the text files that no formatter owns; the others get the same from
-      # Prettier, Ruff or markdownlint. Keep in sync with the lint hook.
+      # Prettier, Ruff or markdownlint.
       - id: end-of-file-fixer
         name: fix end of files
         entry: mise exec -- uv run --locked end-of-file-fixer
@@ -97,6 +97,15 @@ repos:
         entry: mise exec -- uv run --locked --project backend ruff format
         language: unsupported
         files: ^(backend/.*|\.claude/hooks/[^/]+)\.py$
+
+      # From the root: ESLint 10 finds frontend/eslint.config.js from each file's
+      # folder. Lint before format, as with Ruff.
+      - id: eslint
+        name: eslint
+        entry: mise exec -- frontend/node_modules/.bin/eslint --fix --no-warn-ignored
+        language: unsupported
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx]
 
       # Every file: --ignore-unknown and .prettierignore
       # decide what Prettier formats.

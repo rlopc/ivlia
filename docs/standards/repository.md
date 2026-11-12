@@ -32,10 +32,10 @@ Every development tool meets these rules. Review a tool against them whenever it
 Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation). `mise.toml` sets the last two too, and jdx/mise-action exports them in CI (its `env` input, on by default); the justfile repeats them on purpose, so every recipe uses the dev installation however `just` is started. `set ignore-comments` keeps comment lines inside linewise recipes (not shebang recipes) from being echoed or run.
 
 - `just setup`: `mise install --locked`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked --all-packages`, `pre-commit install` and `pre-commit install-hooks` (through `uv run --locked`, like every pre-commit call). Uses the network; the only recipe that installs.
-- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
+- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the test of the researcher's guard hook, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
 - `just check-links`: lychee on every versioned Markdown file ([link checking](#link-checking)); extra arguments go to lychee.
 - `just check-backend`: mypy, import-linter, and the tests under coverage with its two reports ([backend.md](backend.md#tests-and-coverage)). All through `uv run --locked`. ruff runs in pre-commit.
-- `just check-frontend`: the contract check, ESLint, knip, Vitest with coverage, the build (`tsc -b`, then `vite build`) and Playwright ([frontend.md](frontend.md)). Prettier runs in pre-commit. Playwright starts a server and a browser, so it runs outside Claude Code's sandbox.
+- `just check-frontend`: the contract check, knip, Vitest with coverage, the build (`tsc -b`, then `vite build`) and Playwright ([frontend.md](frontend.md)). ESLint and Prettier run in pre-commit. Playwright starts a server and a browser, so it runs outside Claude Code's sandbox.
 - `just contract`: exports the event contract and the OpenAPI document, and generates the frontend's types and validator ([api.md](api.md#export)).
 - `just dev`: `ivlia-server --reload` on port 8766, for the dev installation.
 - `just dev-web`: `just dev` and the Vite dev server together; `ivlia web` opens Vite ([frontend.md](frontend.md#development)).
@@ -49,9 +49,10 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 - Rule: every hook is local and runs a tool with a lockfile, at the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation). There are no remote hooks, so Dependabot has nothing to update here.
   - gitleaks, actionlint, zizmor and shellcheck: installed by mise (binaries whose checksums `mise.lock` records). zizmor and shellcheck keep the `files`, `types` and `require_serial` of their upstream hooks; zizmor adds `--offline`, so it never uses the network locally. shellcheck on `PATH` also lets actionlint check the workflows' `run:` scripts.
   - markdownlint-cli2 and Prettier: run through pnpm.
+  - ESLint: run through its binary in `frontend/node_modules/.bin`, from the root: ESLint 10 finds `frontend/eslint.config.js` from each file's folder.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
   - pre-commit-hooks: run through `uv run --locked`, from the root's dev group.
-- Hooks: pre-commit-hooks' commit checks, with the stages of their upstream definitions (`check-added-large-files`, 500 kB, with `--enforce-all` so `just check` and CI check every file, lockfiles excluded because they grow on their own; `check-case-conflict`, because macOS ignores case and CI does not; `check-merge-conflict` with `--assume-in-merge`, so it also runs outside a merge and in CI), its `end-of-file-fixer` and `trailing-whitespace` on the text files no formatter owns (see [formatting](#formatting)), gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/` and `.claude/hooks/`), and Prettier on every file (`--ignore-unknown` and `.prettierignore` decide).
+- Hooks: pre-commit-hooks' commit checks, with the stages of their upstream definitions (`check-added-large-files`, 500 kB, with `--enforce-all` so `just check` and CI check every file, lockfiles excluded because they grow on their own; `check-case-conflict`, because macOS ignores case and CI does not; `check-merge-conflict` with `--assume-in-merge`, so it also runs outside a merge and in CI), its `end-of-file-fixer` and `trailing-whitespace` on the text files no formatter owns (see [formatting](#formatting)), gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ESLint with `--fix` on JavaScript and TypeScript in `frontend/`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/` and `.claude/hooks/`), and Prettier on every file, after ESLint (`--ignore-unknown` and `.prettierignore` decide).
 - A hook that changes files fails that run; running `just check` again passes.
 - `minimum_pre_commit_version` is set. prek is not used: it is still 0.x; revisit at 1.0.
 
@@ -59,9 +60,9 @@ Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre
 
 - Ruff owns Python: `backend/` with its own configuration, and the Claude Code hooks (`.claude/hooks/`, standard library only) with the root's: Ruff's default rules, and the project's Python, which the hooks run with.
 - Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)). `.jsonc` files get no trailing commas, which VS Code flags.
-- Text files that no formatter owns (TOML, shell, SQL, `justfile`, the ignore files, `.python-version`): pre-commit-hooks' `end-of-file-fixer` and `trailing-whitespace`, through `uv run --locked` (it is a root dev dependency). One `files` pattern in `.pre-commit-config.yaml` (`*unowned`), kept in sync with the lint hook. `LICENSE` is left out: its text is copied verbatim.
+- Text files that no formatter owns (TOML, shell, SQL, `justfile`, the ignore files, `.python-version`): pre-commit-hooks' `end-of-file-fixer` and `trailing-whitespace`, through `uv run --locked` (it is a root dev dependency). One `files` pattern in `.pre-commit-config.yaml` (`*unowned`). `LICENSE` is left out: its text is copied verbatim.
 - markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc), each with its reason: line length and first-line-heading rules off, duplicate headings allowed between non-siblings. Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
-- shellcheck: SC2016 is disabled only in the two `.claude/hooks/*.test.sh`, with a reason (literal test commands and files).
+- shellcheck: SC2016 is disabled only in `.claude/hooks/researcher-bash-guard.test.sh`, with a reason (literal test commands and files).
 
 ## Generated files
 
@@ -92,7 +93,7 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 - `README.md`, `SECURITY.md`, `CONTRIBUTING.md` and `LICENSE` at the root.
 - `.github/`: [pull request template](../../.github/pull_request_template.md) and issue forms (bug report, feature request) with blank issues disabled and a link to private security reporting.
 - No CODEOWNERS, Code of Conduct or DCO until contributions open.
-- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), mise's local state in `.mise/`, the scratch files of the lint hook test (its backend folders and its temporary workflows), and build and cache outputs.
+- `.gitignore` excludes local files (`*.local.*`), `.dev/` (the dev installation, Validar reports, review diffs), mise's local state in `.mise/`, and build and cache outputs.
 
 ## License
 

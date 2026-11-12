@@ -31,7 +31,6 @@ check:
     uv run --locked pre-commit run --all-files
     gitleaks git --redact --no-banner
     .claude/hooks/researcher-bash-guard.test.sh
-    .claude/hooks/lint-after-edit.test.sh
     pnpm exec openspec validate --all --strict
     just check-links --offline
     just check-backend
@@ -52,11 +51,10 @@ check-backend:
     uv run --locked coverage report --include='src/ivlia/domain/*' --fail-under=100
     uv run --locked coverage report --omit='src/ivlia/domain/*' --fail-under=95
 
-# Frontend checks. Prettier runs as a pre-commit hook in `check`.
+# Frontend checks. ESLint and Prettier run as pre-commit hooks in `check`.
 [working-directory: 'frontend']
 check-frontend:
     pnpm run contract:check
-    pnpm run lint
     pnpm run knip
     pnpm run test
     pnpm run build

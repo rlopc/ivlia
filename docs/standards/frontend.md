@@ -9,7 +9,7 @@ The SPA in `frontend/`: React with TypeScript, built with Vite, served by FastAP
 - `@/` is `src/`, in `tsconfig.json`, `tsconfig.app.json`, `vite.config.ts` and `components.json`.
 - Tailwind 4 through `@tailwindcss/vite`. shadcn (style `base-nova`, Base UI primitives) writes its components to `src/components/ui/` and its helper to `src/shared/lib/utils.ts`.
 - `components.json` keeps `iconLibrary: "lucide"`, but `lucide-react` is not installed: a `shadcn add` of a component with icons adds it, and that is a new dependency the user confirms.
-- Scripts: `contract`, `contract:check`, `lint`, `knip`, `test`, `build` (`tsc -b`, then `vite build`), `e2e`. `just check-frontend` runs all but `contract`, which `just contract` runs ([repository.md](repository.md)).
+- Scripts: `contract`, `contract:check`, `lint`, `knip`, `test`, `build` (`tsc -b`, then `vite build`), `e2e`. `just check-frontend` runs all but `contract`, which `just contract` runs, and `lint`: ESLint runs in pre-commit ([repository.md](repository.md#pre-commit)).
 
 ## Layout and boundaries
 
@@ -40,7 +40,7 @@ An entities layer (as in Feature-Sliced Design) is added only if it appears.
 - `src/components/ui/` keeps the basic rules but not the type-aware ones, because the shadcn CLI writes it. A component that is modified moves out of `ui/`. `tsc` and Prettier still cover it.
 - Prettier from the root, with the root `.prettierignore`: run it from the repository root, never from `frontend/`, or the generated `src/contract/` is reformatted.
 - knip ([frontend/knip.json](../../frontend/knip.json)) finds unused files, exports and dependencies. It ignores the exports of `src/contract/` and `src/components/ui/`, and two files nothing imports yet: the validator's declaration and shadcn's `utils.ts`.
-- ESLint ignores `src/contract/`, build output and test reports.
+- ESLint ignores `src/contract/`, build output and test reports. It runs as a pre-commit hook, from the root.
 
 ## SSE client
 
