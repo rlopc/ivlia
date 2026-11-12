@@ -41,7 +41,7 @@ A pull request whose base was squash-merged is retargeted to `main` by GitHub, a
 
 - `pull_request_read` with method `get_check_runs`.
 - A failed run: `get_job_logs` for the failed job, then name the cause before acting:
-  - A GitHub fault (for example `Service Unavailable`, or runs queued for hours after an incident): re-run or cancel it with `actions_run_trigger`.
+  - A GitHub fault (for example `Service Unavailable`, or runs queued for hours after an incident): re-run or cancel it with `actions_run_trigger`, and only that: it can also start workflows and delete run logs, which need the user's explicit request.
   - A real failure: fix it on the branch.
 
 ## Merge
