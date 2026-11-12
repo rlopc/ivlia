@@ -13,9 +13,9 @@ Design: [docs/09](../09-ia-en-el-desarrollo.md).
 
 In [.claude/settings.json](../../.claude/settings.json). Precedence: deny, then ask, then allow. They apply the rules of no history rewriting, no deletion and no dependency changes without permission.
 
-- Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked --all-packages` (a partial `uv sync` would remove part of the shared `.venv`, so it asks); `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only `gh pr view`, `gh pr diff`, `gh pr checks`, `gh run view`, `gh issue view`. `just check` installs nothing: `uv run --locked` and `mise exec` use what `just setup` installed from `uv.lock` and `mise.lock`.
-- Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `git rm`; `rm`; `curl` and `wget`; every other `gh` command; web tools.
-- Deny: `git push --force` (also `-f` and `--force-with-lease`), `gh pr merge`, any push to `main`, and reading the use installation folder (`~/Library/Application Support/ivlia`) and the secret folders listed in the file.
+- Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked --all-packages` (a partial `uv sync` would remove part of the shared `.venv`, so it asks); `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only the read-only `.claude/bin/gh-repo` commands: `pr view`, `pr diff`, `pr checks`, `pr list`, `pr status`, `run list`, `run view`, `issue view`, `issue list` ([GitHub access](#github-access)). `just check` installs nothing: `uv run --locked` and `mise exec` use what `just setup` installed from `uv.lock` and `mise.lock`.
+- Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `git rm`; `rm`; `curl` and `wget`; every `.claude/bin/gh-repo` command that writes (pull requests, runs, workflows, issues, releases, labels, caches, `repo`, and all of `api`); web tools.
+- Deny: `git push --force` (also `-f` and `--force-with-lease`), any push to `main`, `.claude/bin/gh-repo auth` (it could print the token), and reading the use installation folder (`~/Library/Application Support/ivlia`) and the secret folders listed in the file.
 - Allow, ask and deny rules match the command text and can be bypassed. The real guards are the GitHub ruleset on `main` ([repository.md](repository.md#github)) and the sandbox.
 
 ## Bash sandbox
@@ -25,12 +25,33 @@ Enabled in the same file (`sandbox`):
 - Bash writes only inside the project and the temporary directory, and reaches only `github.com` and `api.github.com`. Reading the use installation folder and the secret folders is denied.
 - `autoAllowBashIfSandboxed: false`: a command runs without asking only if it matches the allow list; everything else asks.
 - `allowUnsandboxedCommands: false`: Claude cannot retry a command outside the sandbox.
-- `excludedCommands`: only `just setup` runs outside the sandbox, and it still asks.
+- `excludedCommands`: `just setup`, `.claude/bin/gh-repo` and `git push` run outside the sandbox, and still go through the permission rules. An excluded command runs with the user's full access ([GitHub access](#github-access)).
 - Verified on 2026-11-09: after `just setup`, `just check` and the pre-commit hook pass inside the sandbox. Exception since 2026-11-11: `end-of-file-fixer` opens each file for writing even when it changes nothing, so inside the sandbox it fails on `.claude/hooks/*.sh`, which the sandbox protects. Commits that touch `.claude/hooks/` are made by the user, who also copies those files in; skipping the hook is not the normal workflow.
 - Consequences:
-  - `git push` needs the SSH agent and `gh` needs `~/.config/gh`, both outside the sandbox: the user runs them with `!` (for example `git push`, `gh pr create`, `gh pr checks`).
-  - Commit signing needs the SSH agent too, so commits in this repository are not signed (`commit.gpgsign false` in `.git/config`). Commits on `main` are created and signed by GitHub at squash merge.
+  - Inside the sandbox, `gh` cannot verify TLS on macOS (Claude Code's sandboxing docs list it among the Go tools that fail) nor read the user's Keychain, which is why `gh` and `git push` run outside it. `git fetch` stays inside: the repository is public.
+  - Commit signing needs the SSH agent, so commits in this repository are not signed (`commit.gpgsign false` in `.git/config`). Commits on `main` are created and signed by GitHub at squash merge.
 - The sandbox does not cover the Read, Edit, Write and web tools, nor hooks; the permission rules are the only guard for them.
+
+## GitHub access
+
+Claude works on the repository's pull requests, runs and alerts with its own token, limited to this repository. Nothing in the repository names the repository: a fork uses its own token the same way.
+
+- `.claude/bin/gh-repo` runs `gh` with `GH_TOKEN` read from the macOS Keychain (service `gh-repo-token`, account `OWNER/REPO` of `origin`) and `GH_REPO` set to that repository. The user's own `gh` login is not used.
+- The token is a fine-grained personal access token, "Only select repositories" with this repository, expiring after 90 days. Repository permissions: Metadata read; Contents, Pull requests, Actions, Workflows, Issues and Dependabot alerts read and write; Commit statuses, Checks and Code scanning alerts read. Workflows write is needed to push changes to `.github/workflows/`.
+- `git push` goes over HTTPS with `gh-repo` as the only credential helper for github.com, so a push uses the same token.
+- Claude merges only when the user asks, with `gh-repo pr merge --auto --squash`: GitHub merges once the required checks pass ([repository.md](repository.md#github)).
+- The [`pr` skill](../../.claude/skills/pr/SKILL.md) is the procedure: create, update a stacked branch after a squash merge, checks and merge.
+- Accepted risk: `gh-repo` and `git push` run with the user's full access, so a command could send a local file to GitHub (for example `gh api -F field=@file`). Every write asks, `gh-repo api` included, and the token reaches only this repository.
+
+Setup, once per clone (by the user, in a terminal):
+
+1. Create the token in GitHub (Settings, Developer settings, Fine-grained tokens) with the permissions above.
+2. `security add-generic-password -s gh-repo-token -a OWNER/REPO -w`, and paste the token when asked.
+3. `git remote set-url origin https://github.com/OWNER/REPO.git`.
+4. `git config --replace-all credential.https://github.com.helper ''` and `git config --add credential.https://github.com.helper '!"$(git rev-parse --show-toplevel)/.claude/bin/gh-repo" auth git-credential'`.
+5. Check: `.claude/bin/gh-repo pr list` and `git push --dry-run origin HEAD`.
+
+When the token expires, create a new one and replace it with `security add-generic-password -U -s gh-repo-token -a OWNER/REPO -w`.
 
 ## Hooks
 
