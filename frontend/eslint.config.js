@@ -118,8 +118,15 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat.recommended],
     plugins: { boundaries },
+    // The resolver finds tsconfig.json from this file, not the working
+    // directory: pre-commit runs ESLint from the repository root.
     settings: {
-      "import/resolver": { typescript: { alwaysTryTypes: true } },
+      "import/resolver": {
+        typescript: {
+          alwaysTryTypes: true,
+          project: `${import.meta.dirname}/tsconfig.json`,
+        },
+      },
       "boundaries/elements": elements,
     },
     rules: {

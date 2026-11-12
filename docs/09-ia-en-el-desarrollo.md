@@ -47,7 +47,7 @@ Claude Code construye el entorno en pasos pequeños (por ejemplo: repositorio y 
 Las herramientas de «08 Ingeniería y calidad» (ruff, mypy, import-linter, pytest, ESLint, Vitest, etc.) sirven para desarrollar ivlia y son lo que guía a Claude Code: ejecuta las comprobaciones, lee los errores y se corrige solo antes de que el usuario revise.
 
 - Todas se ejecutan a través de `just`, y Claude Code las ejecuta con esos comandos.
-- Tras cada edición, un hook ejecuta las comprobaciones rápidas (formateador y linter).
+- No hay hook tras cada edición, porque se ejecutaría fuera del sandbox: pre-commit ejecuta las comprobaciones rápidas (formateador y linter) al hacer commit, y Claude puede lanzarlas antes con `uv run --locked pre-commit run --files <ficheros>` ([ai-development.md](standards/ai-development.md#hooks)).
 - `just check` ejecuta todas las comprobaciones locales salvo la evaluación de recuperación: tipos, reglas de arquitectura, tests y cobertura. La evaluación va en `just eval`, y la CI la ejecuta según «04 Conocimiento y memoria». `just check` se ejecuta en el paso Verificar, antes de abrir el PR y en CI. Antes de cada commit solo se ejecutan las comprobaciones rápidas de pre-commit (ver «08 Ingeniería y calidad»).
 - La IA no da una tarea por terminada mientras alguna comprobación falle, y no desactiva ni relaja una regla para que pase.
 
