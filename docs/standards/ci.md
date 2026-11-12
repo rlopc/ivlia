@@ -29,7 +29,7 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - Issues are opened with `gh` and `issues: write`, not with third-party actions.
 - Each job has a `timeout-minutes`.
 - Each job runs on a fixed Ubuntu label (`ubuntu-24.04`), not `ubuntu-latest`, which GitHub moves to each new image over several weeks; runner-images suggests a fixed label "to avoid unwanted migration". Each newer GA image comes in its own pull request ([decision map](../decisions/README.md)).
-- A stacked pull request retargeted to `main` gets no new run on its own (the base change is an `edited` event): merge `main` into its branch and push, so every required check runs against `main`.
+- A stacked pull request retargeted to `main` gets no new `just check` or CodeQL run (the base change is an `edited` event, which only `pr-title.yml` listens to): merge `main` into its branch and push, so every required check runs against `main`.
 
 ## The CI job
 
@@ -38,6 +38,13 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 - Two caches: mise-action's own, of the installed tools (on by default, renewed every 30 days), and one `actions/cache` for the pnpm store and the uv cache, keyed on `pnpm-lock.yaml` and `uv.lock`. `links.yml` turns mise-action's cache off, so its two tools never fill the cache that `ci.yml` restores. `uv cache prune --ci` keeps the uv part small. Playwright's browser is not cached, as Playwright advises; its system packages are installed on each run.
 - No cache in the release workflow: a poisoned cache must never reach a published artifact.
 - `pnpm audit` complements Dependabot alerts for JavaScript; it fails on high or critical advisories. Before the first run it found one (re2js, through markdownlint), fixed with a pnpm override ([repository.md](repository.md#known-limitations-and-risks-to-revisit)).
+
+## CodeQL
+
+- Pull requests to `main` only, as in GitHub's starter workflow: code scanning compares a pull request with the analysis of its base branch, and only `main` is analyzed. Stacked pull requests are checked early by `ci.yml`.
+- `paths-ignore` (in the `config` input) skips the generated source code in `frontend/src/contract/`; code scanning applies it to JavaScript/TypeScript and Python without a build. In advanced setup, CodeQL does not skip generated files on its own.
+- No `actions: read`: the starter workflow needs it only in private repositories. If the `actions` analysis turns out to need it, its job fails on the first run.
+- Superseded pull request runs are cancelled, as in `ci.yml`.
 
 ## Scorecard
 
@@ -52,8 +59,8 @@ Publishing results restricts the workflow: no `env` or `defaults`, no `run` step
 | `github-actions` | `/` | the workflows' SHAs and version comments |
 
 - Weekly, with `cooldown: default-days: 7`, the same cooldown as uv, pnpm and mise ([README](README.md#versions-policy)).
-- Groups: minor and patch updates come in one pull request per ecosystem, and each major update in its own, so a breaking change is reviewed alone. Every `github/codeql-action` step, in every workflow (`init`, `analyze`, `upload-sarif`), goes in one group, majors and security updates included (a group covers version updates only unless `applies-to` says otherwise), because the action fails when its steps run different versions (seen on 2026-11-12, when Dependabot split `init` and `analyze` into separate pull requests). A dependency joins the first group it matches, so the `codeql-action` group comes before the other Actions group (checked in GitHub's Dependabot options reference, 2026-11-12). That `github/codeql-action*` matches the subpath actions is not documented; other repositories use the same pattern and get one pull request.
-- Titles: `prefix` and `prefix-development` `build(deps)` give `build(deps): bump …`, which the title check accepts (checked on the first Dependabot PRs, 2026-11-10; a grouped pull request's title is not checked yet). `include: "scope"` is not used: it would give `build(deps-dev)`, a scope the check rejects.
+- Groups: minor and patch updates come in one pull request per ecosystem, and each major update in its own, so a breaking change is reviewed alone. Every `github/codeql-action` step, in every workflow (`init`, `analyze`, `upload-sarif`), goes in one group, majors and security updates included (a group covers version updates only unless `applies-to` says otherwise), because the action fails when its steps run different versions (seen on 2026-11-12, when Dependabot split `init` and `analyze` into separate pull requests). A dependency joins the first group it matches, so the `codeql-action` group comes before the other Actions group (checked in GitHub's Dependabot options reference, 2026-11-12). That `github/codeql-action*` matches the subpath actions is not documented, but it does: Dependabot's first grouped run put `init`, `analyze` and `upload-sarif` in one pull request (2026-11-12). A grouped major or security update of `codeql-action` is not seen yet; it rests on the options reference.
+- Titles: `prefix` and `prefix-development` `build(deps)` give `build(deps): bump …`, which the title check accepts (checked on the first Dependabot PRs, 2026-11-10, and on the first grouped ones, `build(deps): bump the … group …`, 2026-11-12). `include: "scope"` is not used: it would give `build(deps-dev)`, a scope the check rejects.
 - Security updates are enabled by the user in the repository settings; they ignore the cooldown.
 - uv's `required-version` did not stop Dependabot's uv updates (checked on the first one, 2026-11-10, when it was in `backend/pyproject.toml`; it is now in the root `pyproject.toml`, see [repository.md](repository.md#known-limitations-and-risks-to-revisit)).
 - An update that the project's decisions rule out goes in `ignore`, with a comment pointing to the decision.
