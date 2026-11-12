@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/rlopc/ivlia/compare/v0.1.1...v0.1.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* **repo:** run hooks only from files Claude cannot write ([#52](https://github.com/rlopc/ivlia/issues/52)) ([79ffc98](https://github.com/rlopc/ivlia/commit/79ffc980afded4a6643476073cce1b80e2e63119))
+
 ## [0.1.1](https://github.com/rlopc/ivlia/compare/v0.1.0...v0.1.1) (2026-11-10)
 
 
