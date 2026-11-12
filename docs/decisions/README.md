@@ -31,6 +31,7 @@ ADRs live in [adr/](adr/), numbered, in the MADR minimal format. They are immuta
 | mise in CI pinned to the Mac's version (2026.11.5), a cooldown exception | Provisional | 2026-11-16, when 2026.11.5 is 7 days old | [README](../standards/README.md#versions-policy) |
 | `pnpm audit` in CI fails on high and critical advisories; fixes that a dependency has not released go in pnpm `overrides` | Final | — | [ci.md](../standards/ci.md#the-ci-job) |
 | mise tools updated by `just update-tools` and a monthly reminder issue, not Dependabot | Provisional | When Dependabot supports mise | [ci.md](../standards/ci.md#dependabot) |
+| Dependabot groups minor and patch updates per ecosystem, each major alone, and every `github/codeql-action` step together; replaces "no wildcard groups" (2026-11-09) | Provisional | Dependabot's first grouped run: group order, the `codeql-action` pattern and the grouped titles | [ci.md](../standards/ci.md#dependabot) |
 | mise lockfile (`mise.lock`) enabled | Final | — | [repository.md](../standards/repository.md#tool-versions) |
 | pnpm pinned in `mise.toml`, not in `packageManager`, so `pnpm-lock.yaml` is one YAML document that the dependency graph reads | Provisional | When GitHub's dependency graph reads two-document pnpm lockfiles | [repository.md](../standards/repository.md#tool-versions) |
 | No Zod for the contract: generated TypeScript types and an Ajv validator | Provisional | When the first form arrives | [api.md](../standards/api.md#frontend-types-and-validator) |
