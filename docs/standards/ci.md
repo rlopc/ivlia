@@ -42,13 +42,13 @@ zizmor and actionlint check them in pre-commit, so in `just check` too.
 ## CodeQL
 
 - Pull requests to `main` only, as in GitHub's starter workflow: code scanning compares a pull request with the analysis of its base branch, and only `main` is analyzed. Stacked pull requests are checked early by `ci.yml`.
-- `paths-ignore` (in the `config` input) skips the generated source code in `frontend/src/contract/`; code scanning applies it to JavaScript/TypeScript and Python without a build. In advanced setup, CodeQL does not skip generated files on its own.
-- No `actions: read`: the starter workflow needs it only in private repositories. If the `actions` analysis turns out to need it, its job fails on the first run.
+- `paths-ignore` (in the `config` input) skips the generated source code in `frontend/src/contract/`; code scanning applies it to JavaScript/TypeScript and Python without a build. In advanced setup, CodeQL does not skip generated files on its own. The JavaScript/TypeScript job extracts no file under it (checked 2026-11-12).
+- No `actions: read`: the starter workflow needs it only in private repositories, and the `actions` analysis passes without it (checked 2026-11-12).
 - Superseded pull request runs are cancelled, as in `ci.yml`.
 
 ## Scorecard
 
-Publishing results restricts the workflow: no `env` or `defaults`, no `run` steps, only Scorecard's allowed actions (checkout, scorecard-action, upload-artifact, upload-sarif), and a single GitHub-hosted Ubuntu runner label (the scorecard-action README; the last server code in ossf/scorecard-webapp accepts `ubuntu-latest` and `ubuntu-XX.YY` from 22.04, so `ubuntu-24.04` is expected to pass; tracked in [docs/10](../10-plan-y-pendientes.md)). `id-token: write` exists only in its job.
+Publishing results restricts the workflow: no `env` or `defaults`, no `run` steps, only Scorecard's allowed actions (checkout, scorecard-action, upload-artifact, upload-sarif), and a single GitHub-hosted Ubuntu runner label (the scorecard-action README; the last server code in ossf/scorecard-webapp accepts `ubuntu-latest` and `ubuntu-XX.YY` from 22.04, and the first run on `main` with `ubuntu-24.04` signed and published its results, checked 2026-11-12). `id-token: write` exists only in its job.
 
 ## Dependabot
 

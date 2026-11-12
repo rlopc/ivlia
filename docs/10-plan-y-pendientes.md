@@ -33,8 +33,6 @@ Las rebanadas posteriores (agente Code, agente Learning, voz, grafo de conocimie
 | Servicio launchd y su instalación | Antes del primer uso real |
 | Cómo se detecta que un hecho actualiza a otro | Rebanada 7 |
 | Pasar los workflows de `ubuntu-24.04` a `ubuntu-26.04` ([ci.md](standards/ci.md#rules-for-every-workflow)) | Después de fusionar las PR apiladas pendientes, en su propia PR |
-| Confirmar que Scorecard acepta `ubuntu-24.04` al publicar resultados ([ci.md](standards/ci.md#scorecard)) | En la primera ejecución de `scorecard.yml` en `main` |
-| Confirmar que `analyze (actions)` pasa sin `actions: read` y que `paths-ignore` excluye `frontend/src/contract/` ([ci.md](standards/ci.md#codeql)) | En la primera ejecución de `codeql.yml` en `main` |
 | Los *hooks* de Claude Code se ejecutan fuera del sandbox con herramientas de `.venv` y `node_modules`, que Claude puede modificar: desde ahí se podría leer el token del Llavero ([ai-development.md](standards/ai-development.md#github-access)). Opciones: un Python y herramientas fuera del proyecto, o ejecutar los *hooks* dentro de un sandbox. Hasta entonces, el token es de solo lectura y el servidor se usa en `/mcp/readonly`: las escrituras en GitHub las hace el usuario (decisión del 2026-11-12) | En su propia PR, cuanto antes |
 | Comprobar que los logs de depuración de Claude Code no guardan las cabeceras de las peticiones MCP (el token va en `Authorization`) | Al configurar el token definitivo |
 | Reducir el coste de usar Claude Code: modelo por tipo de tarea, sesiones cortas, límites a subagentes, revisiones e investigaciones | Después de la PR de acceso a GitHub |
