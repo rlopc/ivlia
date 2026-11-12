@@ -16,6 +16,9 @@ concurrency:
 jobs:
   release-please:
     runs-on: ubuntu-24.04
+    # The App's private key is a secret of this environment, which only main
+    # can use, so no workflow run for a branch or pull request can read it.
+    environment: release
     timeout-minutes: 10
     # The GitHub App token does the work: PRs and tags made with GITHUB_TOKEN
     # would not trigger CI, and the release PR needs its required checks.
@@ -47,6 +50,7 @@ jobs:
   sync:
     needs: release-please
     runs-on: ubuntu-24.04
+    environment: release
     timeout-minutes: 10
     permissions: {}
     steps:

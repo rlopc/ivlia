@@ -20,7 +20,7 @@ On every push to `main`:
 ## Credential
 
 - release-please and `lock` act with a token of a GitHub App installed on this repository only, with read and write access to contents and pull requests. Events made with `GITHUB_TOKEN` do not trigger workflows, so its release PRs would never get the required checks.
-- The App's client ID is the repository variable `RELEASE_APP_CLIENT_ID`, and its private key the secret `RELEASE_APP_PRIVATE_KEY`. Each job asks for a short-lived token narrowed to the permissions it needs; the action revokes it when the job ends.
+- The App's client ID is the repository variable `RELEASE_APP_CLIENT_ID`, and its private key the secret `RELEASE_APP_PRIVATE_KEY` of the `release` environment, whose deployment branches are only `main`: a workflow run for another branch or a pull request cannot read it, even with a changed workflow. The two jobs that use it declare `environment: release`. Each job asks for a short-lived token narrowed to the permissions it needs; the action revokes it when the job ends.
 - `publish` uses `GITHUB_TOKEN` with `contents: write` to upload assets, and `id-token: write` and `attestations: write` for the attestation.
 - No cache in this workflow: a poisoned cache must never reach a release.
 
