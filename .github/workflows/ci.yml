@@ -2,8 +2,8 @@
 name: CI
 
 on:
+  # Every base branch, so a stacked pull request is checked before it targets main.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   check:
     name: just check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -27,8 +27,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Only mise itself; `mise install --locked` below runs as `just setup`
-      # does locally, with the job's token.
+      # Only mise itself. The tools come from the `mise install --locked` step
+      # below, with the job's token, because the cache step needs pnpm and uv;
+      # `just setup` runs it again and finds nothing to install.
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
           # Same mise as on the Mac: mise.lock is format 4, which needs it.

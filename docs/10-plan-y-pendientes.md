@@ -32,3 +32,5 @@ Las rebanadas posteriores (agente Code, agente Learning, voz, grafo de conocimie
 | Copias de seguridad: qué se copia, dónde y cómo se cifra | Antes de la rebanada 2 |
 | Servicio launchd y su instalación | Antes del primer uso real |
 | Cómo se detecta que un hecho actualiza a otro | Rebanada 7 |
+| Pasar los workflows de `ubuntu-24.04` a `ubuntu-26.04` ([ci.md](standards/ci.md#rules-for-every-workflow)) | Después de fusionar las PR apiladas pendientes, en su propia PR |
+| Confirmar que Scorecard acepta `ubuntu-24.04` al publicar resultados ([ci.md](standards/ci.md#scorecard)) | En la primera ejecución de `scorecard.yml` en `main` |

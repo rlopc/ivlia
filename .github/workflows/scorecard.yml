@@ -1,5 +1,6 @@
 # OpenSSF Scorecard. Publishing results restricts this workflow: no env or
-# defaults, no run steps and only Scorecard's allowed actions.
+# defaults, no run steps, only Scorecard's allowed actions and one Ubuntu
+# GitHub-hosted runner label.
 name: Scorecard
 
 on:
@@ -12,7 +13,7 @@ permissions: {}
 
 jobs:
   analysis:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
