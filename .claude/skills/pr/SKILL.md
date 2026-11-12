@@ -20,7 +20,7 @@ How the repository's pull requests are handled: [ci.md](../../../docs/standards/
 
 1. The `reviewer` agent has reviewed the branch ([ai-development.md](../../../docs/standards/ai-development.md)).
 2. The user pushes the branch.
-3. Title: Conventional Commits with one of the types and scopes in `.github/workflows/pr-title.yml`. It becomes the squash commit on `main`, so it says what the whole pull request does.
+3. Title: Conventional Commits with one of the types and scopes in `.github/workflows/pr-title.yml`, chosen by the [Git rules](../../../docs/standards/README.md#git): only changes to what is released use a type that opens a release. It becomes the squash commit on `main`, so it says what the whole pull request does.
 4. Body: the sections of `.github/pull_request_template.md`, with the Validar summary when there is one.
 5. Base: `main`, or the branch below for a stacked pull request.
 6. `create_pull_request` with that title, body, base and head.
