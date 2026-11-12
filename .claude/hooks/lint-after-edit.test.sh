@@ -9,6 +9,9 @@ set -uo pipefail
 
 project="$(cd "$(dirname "$0")/../.." && pwd)"
 hook="$project/.claude/hooks/lint-after-edit.py"
+# The hooks run through python.sh (.claude/settings.json), with the root .venv.
+python="$project/.venv/bin/python"
+wrapper="$project/.claude/hooks/python.sh"
 # Inside each zone, so its tools use its configuration; removed on exit.
 # The frontend and root ones are not hidden or gitignored: TypeScript, Prettier
 # and markdownlint skip those.
@@ -31,9 +34,9 @@ fail() {
 
 check() {
   local name=$1 expected=$2 file=$3 actual
-  python3 -I -c 'import json, sys
+  "$python" -I -c 'import json, sys
 print(json.dumps({"tool_name": "Edit", "tool_input": {"file_path": sys.argv[1]}}))' "$file" |
-    CLAUDE_PROJECT_DIR="$project" python3 -I "$hook" 2>"$stderr"
+    CLAUDE_PROJECT_DIR="$project" bash "$wrapper" "$hook" 2>"$stderr"
   actual=$?
   if [[ $actual != "$expected" ]]; then
     fail "$name: expected exit $expected, got $actual"
@@ -98,6 +101,18 @@ printf '#!/usr/bin/env fish\necho $argv\n' >"$root/fish-script"
 chmod +x "$root/fish-script"
 check "fish script" 0 "$root/fish-script"
 
+# Text files no formatter owns: end-of-file-fixer and trailing-whitespace-fixer.
+# Exact bytes: one final newline, from a file with trailing spaces and several.
+printf 'a = 1   \nb = 2\n\n\n' >"$root/fixable.toml"
+check "unowned text fixable" 0 "$root/fixable.toml"
+[[ $(od -An -c "$root/fixable.toml" | tr -d ' \n') == 'a=1\nb=2\n' ]] ||
+  fail "unowned text file was not fixed: $(od -An -c "$root/fixable.toml")"
+# A fixer that crashes (here, a read-only file) is an error, not a fix.
+printf 'a = 1\n' >"$root/read-only.toml"
+chmod a-w "$root/read-only.toml"
+check "unowned text, fixer crash" 2 "$root/read-only.toml"
+grep -q "^end-of-file-fixer found errors" "$stderr" || fail "fixer crash not reported: $(head -1 "$stderr")"
+
 # Workflows: zizmor (security) and actionlint (syntax), each on its own case.
 # workflow_dispatch: no third-party trigger, even if a leftover reached git.
 printf 'on: workflow_dispatch\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - run: echo "${{ github.event.issue.title }}"\n' >"$workflow-injection.yml"
@@ -110,6 +125,12 @@ check "workflow actionlint" 2 "$workflow-syntax.yml"
 if ! { grep -q "^actionlint found errors" "$stderr" && grep -q "syntax-check" "$stderr"; }; then
   fail "actionlint error not reported: $(head -1 "$stderr")"
 fi
+
+# Without the .venv, the wrapper fails closed: exit 2, with what to do.
+printf '{}' | CLAUDE_PROJECT_DIR="$outside" bash "$wrapper" "$hook" 2>"$stderr"
+status=$?
+[[ $status == 2 ]] || fail "no .venv: expected exit 2, got $status"
+grep -q "just setup" "$stderr" || fail "no .venv: message missing"
 
 # Ignored: generated files, files outside the repository, unknown types.
 for generated in "$project/frontend/src/contract/events.ts" "$project/CHANGELOG.md"; do

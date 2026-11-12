@@ -8,13 +8,16 @@
 set -uo pipefail
 
 guard="$(dirname "$0")/researcher-bash-guard.py"
+# The hooks run through python.sh (.claude/settings.json), with the root .venv.
+project="$(cd "$(dirname "$0")/../.." && pwd)"
+python="$project/.venv/bin/python"
 failures=0
 
 check() {
   local expected=$1 agent=$2 cmd=$3 actual out
-  out=$(python3 -I -c 'import json, sys
+  out=$("$python" -I -c 'import json, sys
 print(json.dumps({"agent_type": sys.argv[1], "tool_input": {"command": sys.argv[2]}}))' "$agent" "$cmd" |
-    python3 -I "$guard" 2>/dev/null)
+    CLAUDE_PROJECT_DIR="$project" bash "$(dirname "$0")/python.sh" "$guard" 2>/dev/null)
   actual=$?
   [[ $actual == 0 && $out == *'"allow"'* ]] && actual=A
   if [[ $actual != "$expected" ]]; then

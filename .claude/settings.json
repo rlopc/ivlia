@@ -109,7 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -I \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-after-edit.py\""
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/python.sh\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-after-edit.py\""
           }
         ]
       }
@@ -120,7 +120,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -I \"${CLAUDE_PROJECT_DIR}/.claude/hooks/researcher-bash-guard.py\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/python.sh\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/researcher-bash-guard.py\"",
             "onFailure": "block"
           }
         ]
