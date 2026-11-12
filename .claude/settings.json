@@ -90,6 +90,7 @@
       "Bash(gh pr merge*)",
       "Bash(security *)",
       "Edit(~/.local/bin/**)",
+      "Edit(~/.local/share/uv/**)",
       "Edit(~/.claude.json)",
       "Edit(/.mcp.json)",
       "Edit(/.claude/settings.json)",
@@ -125,24 +126,17 @@
     "excludedCommands": ["just setup", "mise exec -- just setup"]
   },
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/python.sh\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-after-edit.py\""
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/python.sh\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/researcher-bash-guard.py\"",
+            "command": "/bin/sh",
+            "args": [
+              "-c",
+              "exec \"$HOME/.local/bin/python3.14\" -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/researcher-bash-guard.py\""
+            ],
             "onFailure": "block"
           }
         ]
