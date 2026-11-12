@@ -1,5 +1,7 @@
 # Version updates, a week after each release (the same cooldown as uv, pnpm
 # and mise). Titles are `build(deps): …`, which the PR title check accepts.
+# Minor and patch updates come in one pull request per ecosystem; each major
+# update comes in its own (docs/standards/ci.md#dependabot).
 # mise.toml is not supported: see .github/workflows/tool-updates.yml.
 # pre-commit is not listed: every hook is local, with its version in a lockfile.
 version: 2
@@ -10,6 +12,15 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      uv-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      # uv_build's lower bound follows uv's version in mise.toml, so uv runs
+      # its built-in backend; `just update-tools` raises both
+      # (docs/standards/ci.md#dependabot).
+      - dependency-name: uv-build
     cooldown:
       default-days: 7
     commit-message:
@@ -21,6 +32,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
     ignore:
       # typescript-eslint supports TypeScript < 6.1: stay on 6.x until it
       # supports 7 (docs/decisions/README.md, "TypeScript 6.0, not 7").
@@ -36,6 +51,18 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      # Every step of github/codeql-action must run the same version, majors
+      # and security updates included. A dependency joins the first group it
+      # matches, and a group without applies-to covers version updates only.
+      codeql-action:
+        patterns: ["github/codeql-action*"]
+      codeql-action-security:
+        applies-to: security-updates
+        patterns: ["github/codeql-action*"]
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
     cooldown:
       default-days: 7
     commit-message:
