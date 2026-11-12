@@ -17,7 +17,7 @@ The standards document describes the current state of the project's tools and pr
 
 - Short branches named `<type>/<short-description>` (for example `chore/repo-setup`), created from `main`, the only permanent branch.
 - One pull request per step, squash-merged into `main`. `main` always works and `just check` is green.
-- PR title: `<type>(<area>): <summary>`. Types are the standard Conventional Commits types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, `style`, `revert`). Areas: `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps` (dependency updates). After the squash the title is the commit message. CI checks the format ([ci.md](ci.md#workflows)).
+- PR title: `<type>(<area>): <summary>`. Types are the standard Conventional Commits types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, `style`, `revert`). Only changes to what is released (the wheel and the SPA) use a type that opens a release; changes to development tooling use one that does not (`build`, `ci`, `chore`, …, see [release.md](release.md)). Dependency updates (`build(deps)`) do not open one either: they ship with the next release. Areas: `backend`, `frontend`, `cli`, `docs`, `ci`, `repo`, `deps` (dependency updates). After the squash the title is the commit message. CI checks the format ([ci.md](ci.md#workflows)).
 - The user reviews and merges every PR. Settings that enforce this: [repository.md](repository.md#github).
 
 ## Documentation rule
