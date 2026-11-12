@@ -1,6 +1,6 @@
-# Sourced by gh-repo.sh and git-credential-gh-repo.sh: sets REPO to the
-# OWNER/REPO of the origin remote and TOKEN to that repository's token from
-# the macOS Keychain (service gh-repo-token), or exits.
+# Sourced by gh-repo and git-credential-gh-repo, next to it in ~/.local/bin:
+# sets REPO to the OWNER/REPO of the origin remote and TOKEN to that
+# repository's token from the macOS Keychain (service gh-repo-token), or exits.
 # docs/standards/ai-development.md#github-access
 # shellcheck shell=bash disable=SC2034 # REPO and TOKEN are for the caller
 

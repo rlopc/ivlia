@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Run gh on this repository with its own fine-grained token from the macOS
-# Keychain. Claude Code runs it outside the Bash sandbox, where gh can verify
+# Keychain. Installed by the user as ~/.local/bin/gh-repo, out of Claude's
+# reach; Claude Code runs it outside the Bash sandbox, where gh can verify
 # TLS, so it accepts only the subcommands listed below and gives gh an empty
 # configuration: no aliases, extensions or user settings.
 # docs/standards/ai-development.md#github-access
@@ -21,15 +22,19 @@ case "${1:-} ${2:-}" in
     ;;
 esac
 
-# History rewrites and branch deletions need the user's explicit permission.
-for arg in "$@"; do
-  case "$arg" in
-    --rebase | -d | --delete-branch | --delete-branch=*)
-      echo "gh-repo: '$arg' is not allowed (docs/standards/ai-development.md#github-access)" >&2
-      exit 2
-      ;;
-  esac
-done
+# History rewrites and branch deletions need the user's explicit permission:
+# no --rebase (update-branch) and no -d or --delete-branch (merge), also when
+# -d is combined with other short options, such as -sd.
+if [[ "$1" == pr && ("$2" == merge || "$2" == update-branch) ]]; then
+  for arg in "${@:3}"; do
+    case "$arg" in
+      --rebase* | --delete-branch* | -[!-]*d*)
+        echo "gh-repo: '$arg' is not allowed (docs/standards/ai-development.md#github-access)" >&2
+        exit 2
+        ;;
+    esac
+  done
+fi
 
 # shellcheck source=/dev/null # github-repo.sh, checked on its own
 source "$(dirname "$0")/github-repo.sh"
