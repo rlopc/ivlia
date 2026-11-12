@@ -4,16 +4,21 @@
 # Each case writes a file, sends the hook its path and checks the exit code
 # and, for fixable problems, that the file was fixed.
 
+# shellcheck disable=SC2016  # the test files are literal scripts and workflows
 set -uo pipefail
 
 project="$(cd "$(dirname "$0")/../.." && pwd)"
 hook="$project/.claude/hooks/lint-after-edit.py"
 # Inside each zone, so its tools use its configuration; removed on exit.
-# The frontend one is not hidden or gitignored: TypeScript and Prettier skip those.
+# The frontend and root ones are not hidden or gitignored: TypeScript, Prettier
+# and markdownlint skip those.
 backend="$(mktemp -d "$project/backend/.hook-test.XXXXXX")" || exit 1
 frontend="$(mktemp -d "$project/frontend/src/hook-test-XXXXXX")" || exit 1
+root="$(mktemp -d "$project/hook-test-XXXXXX")" || exit 1
 outside="$(mktemp -d "${TMPDIR:-/tmp}/lint-hook.XXXXXX")" || exit 1
-trap 'rm -rf "$backend" "$frontend" "$outside"' EXIT
+# Workflows must sit in .github/workflows/ itself, where zizmor and actionlint look.
+workflow="$project/.github/workflows/hook-test-$$"
+trap 'rm -rf "$backend" "$frontend" "$root" "$outside" "$workflow"-*.yml' EXIT
 stderr="$outside/stderr"
 failures=0
 
@@ -56,15 +61,51 @@ printf 'export const x: any = 1;\n' >"$frontend/broken.ts"
 check "typescript unfixable" 2 "$frontend/broken.ts"
 grep -q "no-explicit-any" "$stderr" || fail "typescript error not reported"
 
-# Ignored: generated code, files outside the zones, other file types.
-contract="$project/frontend/src/contract/events.ts"
-before="$(cat "$contract")"
-check "generated contract" 0 "$contract"
-[[ $(cat "$contract") == "$before" ]] || fail "generated contract was changed"
+# Any zone: Prettier formats every type it knows, as pre-commit does.
+printf 'a:   [1,2]\n' >"$root/fixable.yaml"
+check "yaml fixable" 0 "$root/fixable.yaml"
+[[ $(cat "$root/fixable.yaml") == 'a: [1, 2]' ]] ||
+  fail "yaml fixable file was not fixed: $(cat "$root/fixable.yaml")"
+
+# Markdown, fixable: markdownlint fixes the file.
+printf '#Title\n' >"$root/fixable.md"
+check "markdown fixable" 0 "$root/fixable.md"
+[[ $(cat "$root/fixable.md") == '# Title' ]] ||
+  fail "markdown fixable file was not fixed: $(cat "$root/fixable.md")"
+
+# Markdown, not fixable: the error goes back to Claude with exit 2.
+printf '# Title\n\n[link](#missing)\n' >"$root/broken.md"
+check "markdown unfixable" 2 "$root/broken.md"
+grep -q "MD051" "$stderr" || fail "markdown error not reported"
+
+# Shell: shellcheck, found by suffix and by shebang; a clean script passes.
+printf '#!/usr/bin/env bash\necho "$1"\n' >"$root/clean.sh"
+check "shell clean" 0 "$root/clean.sh"
+printf '#!/usr/bin/env bash\necho $1\n' >"$root/broken.sh"
+check "shell unfixable" 2 "$root/broken.sh"
+grep -q "SC2086" "$stderr" || fail "shell error not reported"
+printf '#!/usr/bin/env bash\necho $1\n' >"$root/broken-script"
+check "shell by shebang" 2 "$root/broken-script"
+grep -q "SC2086" "$stderr" || fail "shell error by shebang not reported"
+
+# Workflows: zizmor (security) and actionlint (syntax), each on its own case.
+printf 'on: issues\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - run: echo "${{ github.event.issue.title }}"\n' >"$workflow-injection.yml"
+check "workflow zizmor" 2 "$workflow-injection.yml"
+grep -q "template-injection" "$stderr" || fail "zizmor error not reported"
+printf 'on: push\npermissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    foo: bar\n    steps:\n      - run: echo hi\n' >"$workflow-syntax.yml"
+check "workflow actionlint" 2 "$workflow-syntax.yml"
+grep -q "syntax-check" "$stderr" || fail "actionlint error not reported"
+
+# Ignored: generated files, files outside the repository, unknown types.
+for generated in "$project/frontend/src/contract/events.ts" "$project/CHANGELOG.md"; do
+  before="$(cat "$generated")"
+  check "generated ${generated#"$project/"}" 0 "$generated"
+  [[ $(cat "$generated") == "$before" ]] || fail "generated ${generated#"$project/"} was changed"
+done
 printf 'print(undefined_name)\n' >"$outside/outside.py"
-check "outside the zones" 0 "$outside/outside.py"
+check "outside the repository" 0 "$outside/outside.py"
 printf 'not python\n' >"$backend/notes.txt"
-check "backend non-python" 0 "$backend/notes.txt"
+check "unknown type" 0 "$backend/notes.txt"
 
 if ((failures > 0)); then
   echo "$failures failure(s)"

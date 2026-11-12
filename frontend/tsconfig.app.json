@@ -20,9 +20,8 @@
     "paths": { "@/*": ["./src/*"] },
 
     /* Linting */
+    /* Unused locals and parameters: ESLint's no-unused-vars, as typescript-eslint recommends. */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },

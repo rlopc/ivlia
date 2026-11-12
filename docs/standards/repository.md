@@ -1,8 +1,24 @@
 # Repository
 
+## Toolchain rules
+
+Every development tool meets these rules. Review a tool against them whenever it is added, upgraded or reconfigured.
+
+- **Same everywhere**: a tool behaves the same in the editor, Claude Code's hooks, the terminal, pre-commit and CI. Its configuration lives only in its versioned config file; editor settings only point to it, and an editor tool that cannot is turned off.
+- **One owner**: each file type has one formatter, and each check one tool. Two tools may check the same thing only when one of them reports it earlier.
+- **Early feedback**: checks run as early as possible: while writing, then at commit, then in CI. Fast checks run first; slow ones in `just check` and CI.
+- **Clear scope**: each tool states which files it covers and which it skips. The files it sees are the versioned ones, and generated files are skipped by every tool.
+- **Consistent**: code, configuration and documentation say the same thing ([documentation rule](README.md#documentation-rule)).
+- **Reproducible**: exact versions from the lockfiles, with checksums where the tool allows it; actions pinned by commit SHA. It works on macOS arm64 and Linux x64, also where mise is not activated.
+- **Up to date**: current releases within the [versions policy](README.md#versions-policy).
+- **Proven**: each check is shown to fail on a bad input, not only to pass (hook tests, rules checked with a forbidden case).
+- **Least privilege**: a tool gets only the network, permissions and secrets it needs; local checks run offline.
+- **Best practice**: configured as its official documentation recommends; any deviation is written down with its reason.
+- **Minimal**: a tool is added only when no existing one covers the need.
+
 ## Tool versions
 
-- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint and pre-commit (with pre-commit-uv). `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
+- [mise.toml](../../mise.toml) pins node, pnpm, uv, just, lychee, gitleaks, actionlint, shellcheck, zizmor and pre-commit. `mise.lock` is enabled (`lockfile = true`) and holds the versions and the checksums of the downloaded binaries for macOS arm64 and Linux x64.
 - pnpm is pinned only in `mise.toml`, not in `packageManager` of `package.json`: with `packageManager`, pnpm 12 writes `pnpm-lock.yaml` as two YAML documents, which GitHub's dependency graph does not read, so Dependabot would raise no security alerts for JavaScript. Corepack is not used.
 - Python is not in mise: uv reads [backend/.python-version](../../backend/.python-version). Python dependencies: [backend.md](backend.md#project).
 - pre-commit is installed by mise's pipx backend, which uses uv. `mise.lock` stores its version, and `.mise/locks/pipx-pre-commit/` (versioned) its dependency graph: a `uv.lock` with the hash of every package. mise needs that folder to install it.
@@ -12,10 +28,11 @@
 
 ## `just` recipes
 
-Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"` (cooldown for the pre-commit environments), `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
+Defined in the [justfile](../../justfile). It exports `OPENSPEC_TELEMETRY=0`, `DO_NOT_TRACK=1`, and `IVLIA_ENV=dev` with `IVLIA_HOME=<repo>/.dev` (the dev installation).
 
 - `just setup`: `mise install`, `pnpm install --frozen-lockfile`, the Playwright Chromium browser, `uv sync --locked` for `backend/`, `pre-commit install` and `pre-commit install-hooks`. Uses the network; the only recipe that installs.
-- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, the offline link check, `just check-backend` and `just check-frontend`.
+- `just check`: every local check, stopping at the first error: `pre-commit run --all-files`, `gitleaks git`, the tests of both `.claude` hooks, `openspec validate --all --strict`, `just check-links --offline`, `just check-backend` and `just check-frontend`.
+- `just check-links`: lychee on every versioned Markdown file ([link checking](#link-checking)); extra arguments go to lychee.
 - `just check-backend`: mypy, import-linter, and the tests under coverage with its two reports ([backend.md](backend.md#tests-and-coverage)). All through `uv run --locked`. ruff runs in pre-commit.
 - `just check-frontend`: the contract check, ESLint, knip, Vitest with coverage, the build (`tsc -b`, then `vite build`) and Playwright ([frontend.md](frontend.md)). Prettier runs in pre-commit. Playwright starts a server and a browser, so it runs outside Claude Code's sandbox.
 - `just contract`: exports the event contract and the OpenAPI document, and generates the frontend's types and validator ([api.md](api.md#export)).
@@ -27,23 +44,21 @@ Defined in the [justfile](../../justfile). It exports `UV_EXCLUDE_NEWER="7 days"
 
 ## Pre-commit
 
-Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit and pre-commit-uv.
+Configured in [.pre-commit-config.yaml](../../.pre-commit-config.yaml), with pre-commit. Every hook is local (`language: unsupported`), so pre-commit builds no environments and pre-commit-uv is not needed.
 
-- Dependabot updates the `rev` of remote hooks ([ci.md](ci.md#dependabot)).
-- Rule: a tool that has a lockfile runs as a local hook with the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation).
-  - gitleaks and actionlint: installed by mise (binaries whose checksums `mise.lock` records).
+- Rule: every hook is local and runs a tool with a lockfile, at the locked version. Local hooks use `language: unsupported` and call their tool through `mise exec --`, so they work where mise is not activated (IDEs, git GUIs, a shell started before activation). There are no remote hooks, so Dependabot has nothing to update here.
+  - gitleaks, actionlint, zizmor and shellcheck: installed by mise (binaries whose checksums `mise.lock` records). zizmor and shellcheck keep the `files`, `types` and `require_serial` of their upstream hooks; zizmor adds `--offline`, so it never uses the network locally. shellcheck on `PATH` also lets actionlint check the workflows' `run:` scripts.
   - markdownlint-cli2 and Prettier: run through pnpm.
   - ruff format and ruff check: run through `uv run --locked --project backend`.
-- zizmor and shellcheck have no lockfile in the repository: they are remote hooks pinned by revision.
-- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff format and ruff check with `--fix` (Python in `backend/`), Prettier.
+- Hooks: gitleaks (staged changes), actionlint (workflows), zizmor, shellcheck, markdownlint-cli2 with `--fix`, ruff check with `--fix` before ruff format, as Ruff recommends (Python in `backend/`), and Prettier on every file, as `just fix` does (`--ignore-unknown` and `.prettierignore` decide).
 - A hook that changes files fails that run; running `just check` again passes.
 - `minimum_pre_commit_version` is set. prek is not used: it is still 0.x; revisit at 1.0.
 
 ## Formatting
 
-- Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)).
-- markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc) (line length and first-line-heading rules off; duplicate headings allowed between non-siblings, because `docs/04` has two "Fuentes" headings at different levels). Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
-- shellcheck: SC2016 is disabled only in `.claude/hooks/researcher-bash-guard.test.sh`, with a reason (literal test commands).
+- Prettier owns JavaScript, TypeScript, JSON, YAML and CSS ([.prettierrc.json](../../.prettierrc.json)). It ignores Markdown ([.prettierignore](../../.prettierignore)). `.jsonc` files get no trailing commas, which VS Code flags.
+- markdownlint-cli2 owns Markdown. Rules are in [.markdownlint.jsonc](../../.markdownlint.jsonc), each with its reason: line length and first-line-heading rules off, duplicate headings allowed between non-siblings. Skipped files are in [.markdownlint-cli2.jsonc](../../.markdownlint-cli2.jsonc).
+- shellcheck: SC2016 is disabled only in the two `.claude/hooks/*.test.sh`, with a reason (literal test commands and files).
 
 ## Generated files
 
@@ -57,9 +72,17 @@ Never edited by hand; regenerated with their command and excluded from Prettier 
 
 `pnpm-lock.yaml` is one YAML document, which GitHub's dependency graph reads, because pnpm is not pinned in `packageManager` ([tool versions](#tool-versions)).
 
+## Editor
+
+[.vscode/extensions.json](../../.vscode/extensions.json) recommends the extensions that run the project's checks while writing: ESLint, Prettier, markdownlint, Ruff and Mypy, with the Python extension. [.vscode/settings.json](../../.vscode/settings.json) makes them follow the same checks:
+
+- The Mypy extension runs from the nearest `pyproject.toml` (`backend/`), so it reads the project's mypy configuration, and uses the project's mypy, not its bundled one.
+- Pylance type checking is off: mypy is the only type checker, in the terminal and in CI.
+- Known deviation: the markdownlint extension bundles its own markdownlint-cli2 (0.23.2 in extension 0.62.1, checked 2026-11-11) and has no setting to use the project's. It reads the same config files, so it stays as early feedback; pre-commit and CI, with the project's version, decide.
+
 ## Link checking
 
-`lychee --offline --include-fragments` checks local links and anchors in all Markdown; `just check` runs it. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
+`just check-links` runs lychee on the versioned Markdown files (`git ls-files`, the files pre-commit sees), with its options in [lychee.toml](../../lychee.toml) (anchors included; generated files skipped, as markdownlint skips them). `just check` runs it with `--offline`, for local links and anchors; `links.yml` runs it online, with the lychee of `mise.lock`. A glob is not used: lychee skips hidden folders (`.claude/`, `.github/`) and does not read nested `.gitignore` files. markdownlint's MD051 also checks anchors within the same file; it stays on because it reports them in the editor, which lychee does not. External links are checked weekly in CI ([ci.md](ci.md#workflows)).
 
 ## Repository files
 
@@ -81,7 +104,8 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 
 ## Known limitations and risks to revisit
 
-- `just setup` and CI run `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python (checked 2026-11-10). Whether the checksums in `mise.lock` are still verified without `--locked` is not confirmed; mise's docs say only that a recorded checksum is still verified for backends exempt from strict mode. pre-commit's own dependencies are pinned with hashes in `.mise/locks/`. Revisit.
+- `just setup` and CI run `mise install` without `--locked`, because strict mode fails for the pipx backend without a mise-managed Python (checked 2026-11-10). Whether the checksums in `mise.lock` are still verified without `--locked` is not confirmed; mise's docs say only that a recorded checksum is still verified for backends exempt from strict mode. Revisit.
+- pre-commit's dependencies are locked with hashes in `.mise/locks/`, but the lock is not used: mise replays it only with a Python it manages ("dependency graph skipped; installing with version-only resolution", seen on 2026-11-11), so pre-commit is pinned and its dependencies are not. Planned fix: a uv workspace at the root, with pre-commit as a dev dependency in `uv.lock`, which also removes the reason for running without `--locked`.
 - Dependency overrides in [pnpm-workspace.yaml](../../pnpm-workspace.yaml) (`overrides`) carry a security fix that a dependency has not released yet. Each one says when to remove it.
 - gitleaks is in maintenance mode (security fixes only); its README points to Betterleaks, by the same maintainer. Revisit.
 - actionlint (rhysd) has had no release since 1.7.12 (2026-03-30) and no commit since 2026-04-19. mise's registry marks it deprecated in favour of jactionlint, a fork created on 2026-10-05 by mise's own maintainer, which also adds security and policy checks (zizmor covers those here) and changes fast (9 releases and a new major in 5 weeks). actionlint stays, pinned, and mise's install shows the deprecation notice. Revisit when a workflow needs syntax actionlint does not know, when jactionlint settles, or if actionlint is archived (checked 2026-11-10).

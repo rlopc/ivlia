@@ -13,11 +13,13 @@ just = "1.59.0"
 lychee = "0.24.2"
 gitleaks = "8.30.1"
 actionlint = "1.7.12"
-"pipx:pre-commit" = { version = "4.7.0", with = ["pre-commit-uv==4.4.1"] }
+# On PATH, so actionlint also checks the `run:` scripts of the workflows.
+shellcheck = "0.11.0"
+zizmor = "1.32.0"
+# No pre-commit-uv: every hook is local, so pre-commit builds no environments.
+"pipx:pre-commit" = "4.7.0"
 
 [env]
-# Same 7-day cooldown when pre-commit resolves hook environments outside `just`.
-UV_EXCLUDE_NEWER = "7 days"
 # The dev installation: its data stays in the repo's gitignored .dev/ folder.
 IVLIA_ENV = "dev"
 IVLIA_HOME = "{{ config_root }}/.dev"

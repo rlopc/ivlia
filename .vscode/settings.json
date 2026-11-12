@@ -1,0 +1,5 @@
+{
+  "mypy-type-checker.cwd": "${nearestConfig}",
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "python.analysis.typeCheckingMode": "off"
+}

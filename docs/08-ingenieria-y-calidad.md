@@ -27,7 +27,7 @@ Cada una se elige en el paso Validar de la fase 0 que corresponda y la elección
 | Comprobación de Markdown y enlaces | «09 IA en el desarrollo»: la CI valida el Markdown y los enlaces | markdownlint-cli2 y lychee |
 | Comprobación del título del PR | Formato `<tipo>(<área>): <resumen>` | action-semantic-pull-request |
 | Cobertura | Umbrales de «Pruebas» | pytest-cov y la cobertura de Vitest |
-| Comprobaciones rápidas de pre-commit | «09 IA en el desarrollo»: antes de cada commit | ruff y Prettier, con pre-commit-uv |
+| Comprobaciones rápidas de pre-commit | «09 IA en el desarrollo»: antes de cada commit | ruff y Prettier, como hooks locales con la versión de los lockfiles |
 | Versiones y CHANGELOG | «Entrega»: a partir de Conventional Commits | release-please o python-semantic-release |
 
 ## Tipado

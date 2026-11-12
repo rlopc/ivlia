@@ -12,3 +12,7 @@ mise.lock
 
 # Local data.
 .dev/
+
+# import-linter cache, ignored by its own nested .gitignore, which Prettier
+# does not read.
+backend/.import_linter_cache/

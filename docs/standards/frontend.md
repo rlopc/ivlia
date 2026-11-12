@@ -36,6 +36,7 @@ An entities layer (as in Feature-Sliced Design) is added only if it appears.
 ## Lint, types and format
 
 - ESLint flat config: `@eslint/js` recommended, typescript-eslint `strictTypeChecked` with `projectService`, eslint-plugin-react-hooks 7 (`recommended`, which includes the React Compiler rules) and boundaries. Imports are resolved with `eslint-import-resolver-typescript`.
+- Unused locals and parameters are ESLint's (`@typescript-eslint/no-unused-vars`), not `tsc`'s: the tsconfigs leave `noUnusedLocals` and `noUnusedParameters` off, as [typescript-eslint](https://typescript-eslint.io/rules/no-unused-vars/) recommends, so one tool owns the check.
 - `src/components/ui/` keeps the basic rules but not the type-aware ones, because the shadcn CLI writes it. A component that is modified moves out of `ui/`. `tsc` and Prettier still cover it.
 - Prettier from the root, with the root `.prettierignore`: run it from the repository root, never from `frontend/`, or the generated `src/contract/` is reformatted.
 - knip ([frontend/knip.json](../../frontend/knip.json)) finds unused files, exports and dependencies. It ignores the exports of `src/contract/` and `src/components/ui/`, and two files nothing imports yet: the validator's declaration and shadcn's `utils.ts`.
