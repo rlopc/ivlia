@@ -20,7 +20,7 @@ Required status checks on `main` ([repository.md](repository.md#github)), added 
 
 zizmor and actionlint check them in pre-commit, so in `just check` too.
 
-- Actions pinned by full commit SHA, with the version in a comment. Dependabot updates both.
+- Actions pinned by full commit SHA, with the version in a comment. Dependabot updates both, and GitHub refuses an unpinned action ([repository.md](repository.md#github)).
 - `permissions: {}` at the top; each job gets only what it needs.
 - `actions/checkout` with `persist-credentials: false`.
 - Values from GitHub contexts reach scripts through `env:`, never as `${{ }}` inside `run:`.
