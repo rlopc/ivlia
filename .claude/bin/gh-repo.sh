@@ -21,6 +21,16 @@ case "${1:-} ${2:-}" in
     ;;
 esac
 
+# History rewrites and branch deletions need the user's explicit permission.
+for arg in "$@"; do
+  case "$arg" in
+    --rebase | -d | --delete-branch | --delete-branch=*)
+      echo "gh-repo: '$arg' is not allowed (docs/standards/ai-development.md#github-access)" >&2
+      exit 2
+      ;;
+  esac
+done
+
 # shellcheck source=/dev/null # github-repo.sh, checked on its own
 source "$(dirname "$0")/github-repo.sh"
 

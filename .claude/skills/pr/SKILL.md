@@ -31,12 +31,12 @@ A pull request whose base was squash-merged is retargeted to `main` by GitHub, a
 
 1. `git fetch origin`.
 2. Find `B`, the base pull request's last commit: `.claude/bin/gh-repo.sh pr view <base PR> --json headRefOid` (its branch may be deleted). If the branch contains it (`git merge-base --is-ancestor B <branch>`) and `main`'s squash commit has the same tree as `B` (`git diff --quiet B <squash commit>`), merge with `B` as the base, so git does not replay the base's changes against their squash:
-   - `T=$(git merge-tree --write-tree --merge-base B <branch> origin/main)`. It exits with 1 on a conflict: then stop and go to step 3.
-   - `C=$(git commit-tree "$T" -p <branch> -p origin/main -m "Merge branch 'main' into <branch>")`.
-   - Move the branch: `git merge --ff-only "$C"` if it is checked out, otherwise `git update-ref refs/heads/<branch> "$C" <old tip>`.
-3. Otherwise, a normal `git merge origin/main`. Resolve real conflicts in a worktree (`git worktree add`) when the checkout cannot be switched.
-4. Check what the merge brought in: lint the conflicting files, and run `uv lock --check` when `uv.lock` changed.
-5. `git push origin <branch>`.
+   - In one command, since shell variables do not survive between calls: `T=$(git merge-tree --write-tree --merge-base B <branch> origin/main) && C=$(git commit-tree "$T" -p <branch> -p origin/main -m "Merge branch 'main' into <branch>") && git update-ref refs/heads/<branch> "$C" <old tip>`. `merge-tree` exits with 1 on a conflict, which stops the chain: then go to step 3.
+   - If the branch is checked out, end the chain with `git merge --ff-only "$C"` instead of `git update-ref`.
+3. Otherwise, a normal `git merge origin/main`, or resolve real conflicts in a worktree (`git worktree add`).
+4. The sandbox protects `.claude/bin/`: a checkout or merge in the current checkout that changes those files fails. Use a worktree, or ask the user.
+5. Check what the merge brought in: lint the conflicting files, and run `uv lock --check` when `uv.lock` changed.
+6. `git push origin <branch>`.
 
 ## Checks
 
