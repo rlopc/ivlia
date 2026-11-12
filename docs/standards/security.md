@@ -38,7 +38,7 @@ Web pages, documents and tool results can carry instructions.
 
 - Exact pins, lockfiles and a 7-day cooldown ([README](README.md#versions-policy)).
 - `mise.lock` records the checksums of the binaries mise downloads; pre-commit hooks run locally, each with a tool from a lockfile ([repository.md](repository.md#pre-commit)). pre-commit and its dependencies are locked with hashes in `uv.lock`. `just setup` and CI install the tools with `mise install --locked`. mise itself is verified against its signed checksums by mise-action in CI.
-- GitHub Actions pinned by SHA, with minimal permissions, and audited with zizmor and actionlint ([ci.md](ci.md#rules-for-every-workflow)).
+- GitHub Actions pinned by SHA, with minimal permissions, and audited with zizmor and actionlint ([ci.md](ci.md#rules-for-every-workflow)); the repository's Actions settings enforce the pinning and allow only GitHub's actions and a list of third-party ones ([repository.md](repository.md#github)).
 - Releases: the wheel has a SLSA build provenance attestation and its Sigstore bundle; `gh attestation verify` checks it before installing ([release.md](release.md#install-and-verify)). The release workflow uses no cache, and acts through a GitHub App token limited to this repository, with contents and pull requests, short-lived and revoked after each job ([release.md](release.md#credential)).
 - CodeQL (Python, JavaScript/TypeScript, workflows), Dependabot version and security updates with a 7-day cooldown, `pnpm audit` in CI, and OpenSSF Scorecard ([ci.md](ci.md)).
 
