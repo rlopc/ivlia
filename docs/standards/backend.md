@@ -51,7 +51,7 @@ Each contract was checked to fail when its rule is broken.
 
 ## Lint and format
 
-ruff formats and lints (`[tool.ruff.lint]`); it runs as a pre-commit hook, and the PostToolUse hook runs it after each edit by Claude ([ai-development.md](ai-development.md#hooks)). Line length is left to the formatter (`E501` ignored). In tests, `S101` (assert) and `PLR2004` (literal values) are ignored.
+ruff formats and lints (`[tool.ruff.lint]`); it runs as a pre-commit hook ([repository.md](repository.md#pre-commit)). Line length is left to the formatter (`E501` ignored). In tests, `S101` (assert) and `PLR2004` (literal values) are ignored.
 
 | Family | Why |
 | --- | --- |

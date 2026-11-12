@@ -1,12 +1,15 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # headersHelper for GitHub's remote MCP server in Claude Code: prints the
 # request headers as JSON, with the token read from the macOS Keychain
 # (service github-mcp-token), so the token is never in a config file or in
 # Claude's context. The user installs it as ~/.local/bin/github-mcp-headers,
 # out of Claude's reach. docs/standards/ai-development.md#github-access
+# Claude Code runs it outside the sandbox, so it uses only absolute paths: the
+# PATH it inherits starts with the repository's node_modules/.bin.
 set -euo pipefail
+export PATH=/usr/bin:/bin
 
-token="$(security find-generic-password -s github-mcp-token -w)"
+token="$(/usr/bin/security find-generic-password -s github-mcp-token -w)"
 if [[ ! "$token" =~ ^[A-Za-z0-9_]+$ ]]; then
   echo "github-mcp-headers: unexpected token format" >&2
   exit 1
