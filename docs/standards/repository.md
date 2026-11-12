@@ -101,7 +101,6 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 ## GitHub
 
 - Only squash merging is allowed. The commit title is the PR title and the body is blank.
-- Auto-merge is allowed, so a PR merged on request waits for its required checks ([ai-development.md](ai-development.md#github-access)).
 - Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only, and the required status checks of [ci.md](ci.md#workflows).
 - Private vulnerability reporting is enabled (see [SECURITY.md](../../SECURITY.md)).
 - Secret scanning and push protection are enabled (default on public repositories).
