@@ -13,9 +13,9 @@ Design: [docs/09](../09-ia-en-el-desarrollo.md).
 
 In [.claude/settings.json](../../.claude/settings.json). Precedence: deny, then ask, then allow. They apply the rules of no history rewriting, no deletion and no dependency changes without permission.
 
-- Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked --all-packages` (a partial `uv sync` would remove part of the shared `.venv`, so it asks); `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only `gh pr view`, `gh pr diff`, `gh pr checks`, `gh run view`, `gh issue view`. `just check` installs nothing: `uv run --locked` and `mise exec` use what `just setup` installed from `uv.lock` and `mise.lock`.
-- Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `git rm`; `rm`; `curl` and `wget`; every other `gh` command; web tools.
-- Deny: `git push --force` (also `-f` and `--force-with-lease`), `gh pr merge`, any push to `main`, and reading the use installation folder (`~/Library/Application Support/ivlia`) and the secret folders listed in the file.
+- Allow: `just` recipes except `just setup` and `just update-tools`; `uv run --locked`, `uv sync --locked --all-packages` (a partial `uv sync` would remove part of the shared `.venv`, so it asks); `pnpm install --frozen-lockfile`, `pnpm exec`, `pnpm run`; read-only git (`status`, `diff`, `log`, `show`, branch listing); `git add`, `git commit`, `git switch` and branch creation; and only `git remote get-url origin`; and the read tools of the `github` MCP server ([GitHub access](#github-access)). `just check` installs nothing: `uv run --locked` and `mise exec` use what `just setup` installed from `uv.lock` and `mise.lock`.
+- Ask: `just setup`, `just update-tools`, `pnpm dlx`, `create`, `add`, `remove`, `update`; `uvx`, `uv add`, `uv remove`, `uv lock --upgrade`, `uv pip`, `uv tool`; `git push`, `rebase`, `commit --amend`, `reset`, `branch -d` and `-D`, `clean`, `git rm`; `rm`; `curl` and `wget`; the `github` MCP server's write tools; web tools.
+- Deny: `git push --force` (also `-f` and `--force-with-lease`), `gh pr merge`, any push to `main`, and reading the use installation folder (`~/Library/Application Support/ivlia`) and the secret folders listed in the file; `security` (the Keychain), and `Edit` and `Write` on `~/.local/bin/` and `~/.claude.json`, which hold what Claude Code runs and its MCP configuration.
 - Allow, ask and deny rules match the command text and can be bypassed. The real guards are the GitHub ruleset on `main` ([repository.md](repository.md#github)) and the sandbox.
 
 ## Bash sandbox
@@ -31,6 +31,29 @@ Enabled in the same file (`sandbox`):
   - `git push` needs the SSH agent and `gh` needs `~/.config/gh`, both outside the sandbox: the user runs them with `!` (for example `git push`, `gh pr create`, `gh pr checks`).
   - Commit signing needs the SSH agent too, so commits in this repository are not signed (`commit.gpgsign false` in `.git/config`). Commits on `main` are created and signed by GitHub at squash merge.
 - The sandbox does not cover the Read, Edit, Write and web tools, nor hooks; the permission rules are the only guard for them.
+
+## GitHub access
+
+Claude reads and acts on the repository's pull requests, runs, issues and alerts through GitHub's remote MCP server, which runs at GitHub: GitHub access adds nothing that runs on the Mac outside the sandbox, and the permission rules match tool names, not command text ([decision map](../decisions/README.md)).
+
+- Server: `https://api.githubcopilot.com/mcp/`, added by the user in Claude Code's user scope (`~/.claude.json`, out of Claude's reach), never in a versioned `.mcp.json`, which Claude could edit. No Copilot subscription was needed (checked on 2026-11-12).
+- Credential: a fine-grained personal access token, "Only select repositories" with this repository, expiring after 90 days, in the macOS Keychain (service `github-mcp-token`). [github-mcp-headers.sh](../../.claude/bin/github-mcp-headers.sh), installed by the user as `~/.local/bin/github-mcp-headers`, is the server's `headersHelper`: Claude Code runs it when connecting and sends the headers it prints. The token is in no file and never in Claude's context, and inside the sandbox `security` does not see the user's Keychain (checked on 2026-11-12). Code that runs outside the sandbox could still read it: today the hooks do, with tools from `.venv` and `node_modules`, which Claude can write ([docs/10](../10-plan-y-pendientes.md)).
+- Token permissions: Metadata read; Pull requests, Contents (merging needs it), Actions (re-run and cancel) and Issues read and write; Commit statuses, Checks, Dependabot alerts and Code scanning alerts read.
+- Toolsets (header `X-MCP-Toolsets`): `context`, `issues`, `pull_requests`, `actions`, `dependabot`, `code_security`. Not `repos`, which writes files and branches and can delete repositories. Lockdown (`X-MCP-Lockdown`) hides content from users without push access, against injected instructions in a public repository; GitHub states it is a filter, not a security boundary.
+- Permissions: read tools (`get_*`, `list_*`, `search_*`, `pull_request_read`, `issue_read`, `actions_get`, `actions_list`) are allowed; write tools (pull requests, issues, comments, reviews, merging, `actions_run_trigger`) ask. `actions_run_trigger` can also start workflows and delete run logs; Claude uses it only to re-run or cancel a run. Claude cannot edit what Claude Code runs outside the sandbox or its MCP configuration: `Edit` and `Write` are denied on `~/.local/bin/`, `~/.claude.json`, `.mcp.json`, `.claude/settings.json`, `.claude/settings.local.json` and `.claude/hooks/`.
+- Claude merges a PR only when the user asks, with `merge_pull_request` and the squash method; the ruleset on `main` refuses it until the required checks pass.
+- Claude does not push: the user runs `git push`. Dismissing a Dependabot alert has no MCP tool, so the user does it.
+- The [`pr` skill](../../.claude/skills/pr/SKILL.md) is the procedure.
+
+Setup, once per machine (by the user, in a terminal, from the repository root):
+
+1. In GitHub, create the `release` environment, limited to `main`, with the release key ([release.md](release.md#credential)). Once the branch that adds `environment: release` is on `main`, delete the repository-level copy of the key; until then, `main`'s release workflow still reads it.
+2. Create the token (Settings, Developer settings, Fine-grained tokens) with the permissions above.
+3. `security add-generic-password -s github-mcp-token -a github-mcp -w`, and paste the token at its prompt, never into a file or an editor.
+4. Read `.claude/bin/github-mcp-headers.sh`, then `mkdir -p ~/.local/bin` and `install -m 755 .claude/bin/github-mcp-headers.sh ~/.local/bin/github-mcp-headers`. Install it again, after reading the change, whenever it changes.
+5. `claude mcp add-json --scope user github "{\"type\":\"http\",\"url\":\"https://api.githubcopilot.com/mcp/\",\"headersHelper\":\"$HOME/.local/bin/github-mcp-headers\"}"`, then restart Claude Code.
+
+When the token expires, create a new one, replace it with `security add-generic-password -U -s github-mcp-token -a github-mcp -w`, and reconnect the server from `/mcp`.
 
 ## Hooks
 
@@ -64,6 +87,7 @@ The [reviewer](../../.claude/agents/reviewer.md) agent (Opus, tools Read, Grep a
 ## Other skills
 
 - [research](../../.claude/skills/research/SKILL.md) (Spanish until `.claude/` is translated): queries the project's configured knowledge sources through `researcher` agents and synthesizes what they return.
+- [pr](../../.claude/skills/pr/SKILL.md): pull requests through the `github` MCP server: create, update a stacked branch after a squash merge, checks and merge ([GitHub access](#github-access)).
 - [review-file](../../.claude/skills/review-file/SKILL.md): explains one development tool or configuration file in junior-level terms and reviews it against the [Toolchain rules](repository.md#toolchain-rules).
 
 ## OpenSpec
