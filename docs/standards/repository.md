@@ -100,7 +100,7 @@ AGPL-3.0-or-later. The full text goes in `LICENSE`; `package.json` declares the 
 
 ## GitHub
 
-- Only squash merging is allowed. The commit title is the PR title and the body is blank.
+- Only squash merging is allowed. The commit title is the PR title and the body is blank. Merged branches are deleted; auto-merge, the wiki and Projects are off.
 - Ruleset on `main`, active, with no bypass: restrict deletions, block force pushes, require linear history, require a pull request with 0 approvals, squash merge only, and the required status checks of [ci.md](ci.md#workflows).
 - Private vulnerability reporting is enabled (see [SECURITY.md](../../SECURITY.md)).
 - Secret scanning and push protection are enabled (default on public repositories). Scanning for non-provider patterns is not available on this repository (checked 2026-11-12); gitleaks covers generic secrets locally and in CI.
