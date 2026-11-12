@@ -35,4 +35,5 @@ Las rebanadas posteriores (agente Code, agente Learning, voz, grafo de conocimie
 | Pasar los workflows de `ubuntu-24.04` a `ubuntu-26.04` ([ci.md](standards/ci.md#rules-for-every-workflow)) | Después de fusionar las PR apiladas pendientes, en su propia PR |
 | Confirmar que Scorecard acepta `ubuntu-24.04` al publicar resultados ([ci.md](standards/ci.md#scorecard)) | En la primera ejecución de `scorecard.yml` en `main` |
 | Confirmar que `analyze (actions)` pasa sin `actions: read` y que `paths-ignore` excluye `frontend/src/contract/` ([ci.md](standards/ci.md#codeql)) | En la primera ejecución de `codeql.yml` en `main` |
+| Borrar la copia de repositorio de `RELEASE_APP_PRIVATE_KEY` cuando `environment: release` esté en `main` ([ai-development.md](standards/ai-development.md#github-access)) | Al fusionar la PR de acceso a GitHub, antes de crear el token |
 | Comprobar si Claude Code revisa la redirección de salida de un comando excluido del sandbox (`gh-repo.sh`, `git push`) ([ai-development.md](standards/ai-development.md#github-access)) | Antes de ampliar la lista de comandos excluidos |
